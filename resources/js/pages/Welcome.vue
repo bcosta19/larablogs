@@ -2,6 +2,7 @@
 import { Head, useForm, router, usePage } from '@inertiajs/vue3';
 import { ref, computed, onMounted } from 'vue';
 import type { BlogItem, BlogPostItem, BlogStats, FlashMessages } from '@/types';
+import { useI18n, type LocaleCode } from '@/i18n';
 
 interface Props {
     blogs: BlogItem[];
@@ -13,6 +14,17 @@ const props = defineProps<Props>();
 
 const page = usePage();
 const flash = computed<FlashMessages>(() => (page.props as any).flash || {});
+
+// i18n
+const {
+    currentLocale,
+    availableLocales,
+    initLocale,
+    setLocale,
+    t,
+    formatDate,
+    formatRelative,
+} = useI18n();
 
 const form = useForm({
     url: '',
@@ -29,9 +41,11 @@ const activeTab = ref<'blogs' | 'posts'>('blogs');
 const isDark = ref(true);
 
 onMounted(() => {
-    const saved = localStorage.getItem('larablogs_theme_mode');
-    if (saved) {
-        isDark.value = saved === 'dark';
+    initLocale();
+
+    const savedTheme = localStorage.getItem('larablogs_theme_mode');
+    if (savedTheme) {
+        isDark.value = savedTheme === 'dark';
     } else {
         isDark.value = true; // Padrão escuro
     }
@@ -52,6 +66,11 @@ const applyTheme = () => {
     }
 };
 
+const handleLocaleChange = (e: Event) => {
+    const val = (e.target as HTMLSelectElement).value as LocaleCode;
+    setLocale(val);
+};
+
 const submitBlog = () => {
     form.post('/blogs', {
         preserveScroll: true,
@@ -65,7 +84,7 @@ const prefill = (title: string, url: string) => {
     form.title = title;
     form.url = url;
     if (!form.notify_email) {
-        form.notify_email = 'leitor@exemplo.com';
+        form.notify_email = 'reader@example.com';
     }
 };
 
@@ -90,7 +109,8 @@ const toggleBlog = (blogId: number) => {
 };
 
 const deleteBlog = (blog: BlogItem) => {
-    if (confirm(`Deseja remover "${blog.title}" do monitoramento? Todos os artigos associados serão removidos.`)) {
+    const confirmMsg = t('blogs.confirm_delete', { title: blog.title });
+    if (confirm(confirmMsg)) {
         deletingBlogId.value = blog.id;
         router.delete(`/blogs/${blog.id}`, {
             preserveScroll: true,
@@ -119,85 +139,79 @@ const handleImgError = (event: Event) => {
     const target = event.target as HTMLElement;
     target.style.display = 'none';
 };
-
-const formatDate = (dateStr: string | null): string => {
-    if (!dateStr) return 'Data não informada';
-    try {
-        const d = new Date(dateStr);
-        return d.toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    } catch {
-        return dateStr;
-    }
-};
-
-const formatRelative = (dateStr: string | null): string => {
-    if (!dateStr) return 'Nunca verificado';
-    try {
-        const d = new Date(dateStr);
-        const diff = Math.floor((Date.now() - d.getTime()) / 1000);
-        if (diff < 60) return 'Agora';
-        if (diff < 3600) return `${Math.floor(diff / 60)} min atrás`;
-        if (diff < 86400) return `${Math.floor(diff / 3600)} h atrás`;
-        return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-    } catch {
-        return dateStr;
-    }
-};
 </script>
 
 <template>
-    <Head title="Larablogs - Monitor Editorial de Blogs & RSS" />
+    <Head :title="t('header.title') + ' - ' + t('header.badge')" />
 
     <div class="min-h-screen bg-[#FBF9F5] dark:bg-[#141210] text-[#2C2825] dark:text-[#DCD7CE] font-serif transition-colors duration-200 selection:bg-[#EAE5DC] dark:selection:bg-[#38332B] selection:text-[#1A1816] dark:selection:text-[#F5F2EB]">
         <!-- Cabeçalho Editorial com Borda Dupla Clássica -->
         <header class="border-b border-[#E6E1D8] dark:border-[#2D2A26] bg-[#FBF9F5] dark:bg-[#141210] transition-colors duration-200">
             <div class="max-w-4xl mx-auto px-6 pt-6 pb-8 relative">
-                <!-- Botão Alternador de Tema Claro / Escuro -->
-                <div class="flex justify-end mb-2">
+                <!-- Barra de Ferramentas Superior: Idioma e Tema -->
+                <div class="flex items-center justify-between mb-4 font-sans text-xs">
+                    <!-- Seletor de Idioma -->
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-slate-400 dark:text-slate-500">🌐</span>
+                        <div class="relative inline-block">
+                            <select
+                                :value="currentLocale"
+                                @change="handleLocaleChange"
+                                class="appearance-none bg-white dark:bg-[#1C1A18] border border-[#D5CEC2] dark:border-[#38342E] text-[#544E46] dark:text-[#B5ADA3] pl-2.5 pr-7 py-1.5 rounded-full font-medium focus:outline-none focus:border-[#2C2825] dark:focus:border-[#F5F2EB] shadow-2xs transition cursor-pointer"
+                            >
+                                <option
+                                    v-for="loc in availableLocales"
+                                    :key="loc.code"
+                                    :value="loc.code"
+                                >
+                                    {{ loc.flag }} {{ loc.name }}
+                                </option>
+                            </select>
+                            <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-[#756D63] dark:text-[#9C9488]">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Botão Alternador de Tema Claro / Escuro -->
                     <button
                         @click="toggleTheme"
                         type="button"
-                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#D5CEC2] dark:border-[#38342E] bg-white dark:bg-[#1C1A18] hover:bg-[#FAF8F5] dark:hover:bg-[#25221E] text-xs font-sans text-[#544E46] dark:text-[#B5ADA3] transition shadow-2xs"
-                        :title="isDark ? 'Mudar para tema claro' : 'Mudar para tema escuro'"
+                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#D5CEC2] dark:border-[#38342E] bg-white dark:bg-[#1C1A18] hover:bg-[#FAF8F5] dark:hover:bg-[#25221E] text-xs text-[#544E46] dark:text-[#B5ADA3] transition shadow-2xs"
+                        :title="isDark ? t('theme.light') : t('theme.dark')"
                     >
-                        <!-- Ícone do Sol (quando em Dark) -->
                         <svg v-if="isDark" class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
-                        <!-- Ícone da Lua (quando em Light) -->
                         <svg v-else class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                         </svg>
-                        <span class="font-medium">{{ isDark ? 'Tema Claro' : 'Tema Escuro' }}</span>
+                        <span class="font-medium">{{ isDark ? t('theme.light') : t('theme.dark') }}</span>
                     </button>
                 </div>
 
                 <div class="text-center">
                     <div class="inline-block border-b-2 border-t-2 border-[#2C2825] dark:border-[#DCD7CE] py-1 px-4 mb-3">
                         <span class="font-sans text-[11px] tracking-[0.25em] uppercase font-bold text-[#6B635B] dark:text-[#A8A096]">
-                            Boletim Digital &bull; Monitor de Feeds
+                            {{ t('header.badge') }}
                         </span>
                     </div>
                     <h1 class="text-4xl md:text-5xl font-normal tracking-tight text-[#1C1A18] dark:text-[#F5F2EB]">
-                        Larablogs
+                        {{ t('header.title') }}
                     </h1>
                     <p class="mt-2 text-base text-[#756D63] dark:text-[#9C9488] font-sans italic max-w-lg mx-auto">
-                        Curadoria contínua de publicações da web com avisos diretos na sua caixa postal.
+                        {{ t('header.subtitle') }}
                     </p>
 
                     <!-- Estatísticas Estilo Folhetim -->
                     <div class="mt-6 flex items-center justify-center gap-6 text-xs font-sans text-[#756D63] dark:text-[#9C9488] border-t border-[#EAE5DC] dark:border-[#2A2723] pt-4">
-                        <span><strong>{{ stats.total_blogs }}</strong> publicações inscritas</span>
+                        <span><strong>{{ t('header.stats_registered', { count: stats.total_blogs }) }}</strong></span>
                         <span>&bull;</span>
-                        <span><strong>{{ stats.active_blogs }}</strong> ativas</span>
+                        <span><strong>{{ t('header.stats_active', { count: stats.active_blogs }) }}</strong></span>
                         <span>&bull;</span>
-                        <span><strong>{{ stats.total_posts }}</strong> artigos arquivados</span>
+                        <span><strong>{{ t('header.stats_archived', { count: stats.total_posts }) }}</strong></span>
                     </div>
                 </div>
             </div>
@@ -220,22 +234,22 @@ const formatRelative = (dateStr: string | null): string => {
             <!-- Formulário no Estilo Ficha Catalográfica -->
             <section class="bg-white dark:bg-[#1C1A18] border border-[#E4DFD5] dark:border-[#2D2A26] p-8 shadow-xs transition-colors duration-200">
                 <h2 class="text-xl font-normal text-[#1A1816] dark:text-[#F5F2EB] mb-1">
-                    Inscrever nova publicação
+                    {{ t('form.title') }}
                 </h2>
                 <p class="text-xs font-sans text-[#756D63] dark:text-[#9C9488] mb-6">
-                    Insira o endereço do blog ou feed RSS para monitoramento e receba novas matérias.
+                    {{ t('form.subtitle') }}
                 </p>
 
                 <form @submit.prevent="submitBlog" class="space-y-5 font-sans">
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                         <div class="md:col-span-5">
                             <label class="block text-xs font-bold uppercase tracking-wider text-[#544E46] dark:text-[#B5ADA3] mb-1">
-                                Endereço Web (URL) *
+                                {{ t('form.url_label') }}
                             </label>
                             <input
                                 v-model="form.url"
                                 type="text"
-                                placeholder="https://exemplo.com ou feed RSS"
+                                :placeholder="t('form.url_placeholder')"
                                 class="w-full bg-[#FAF8F5] dark:bg-[#141210] border border-[#D5CEC2] dark:border-[#38342E] px-3.5 py-2.5 text-sm text-[#2C2825] dark:text-[#F5F2EB] placeholder-[#9E978E] dark:placeholder-[#6B655D] focus:outline-none focus:border-[#2C2825] dark:focus:border-[#F5F2EB] focus:bg-white dark:focus:bg-[#181614] transition"
                             />
                             <p v-if="form.errors.url" class="text-xs text-[#A32D2D] dark:text-[#F87171] mt-1">{{ form.errors.url }}</p>
@@ -243,12 +257,12 @@ const formatRelative = (dateStr: string | null): string => {
 
                         <div class="md:col-span-4">
                             <label class="block text-xs font-bold uppercase tracking-wider text-[#544E46] dark:text-[#B5ADA3] mb-1">
-                                E-mail Destinatário *
+                                {{ t('form.email_label') }}
                             </label>
                             <input
                                 v-model="form.notify_email"
                                 type="email"
-                                placeholder="seu@email.com"
+                                :placeholder="t('form.email_placeholder')"
                                 class="w-full bg-[#FAF8F5] dark:bg-[#141210] border border-[#D5CEC2] dark:border-[#38342E] px-3.5 py-2.5 text-sm text-[#2C2825] dark:text-[#F5F2EB] placeholder-[#9E978E] dark:placeholder-[#6B655D] focus:outline-none focus:border-[#2C2825] dark:focus:border-[#F5F2EB] focus:bg-white dark:focus:bg-[#181614] transition"
                             />
                             <p v-if="form.errors.notify_email" class="text-xs text-[#A32D2D] dark:text-[#F87171] mt-1">{{ form.errors.notify_email }}</p>
@@ -256,12 +270,12 @@ const formatRelative = (dateStr: string | null): string => {
 
                         <div class="md:col-span-3">
                             <label class="block text-xs font-bold uppercase tracking-wider text-[#756D63] dark:text-[#9C9488] mb-1">
-                                Título (Opcional)
+                                {{ t('form.title_label') }}
                             </label>
                             <input
                                 v-model="form.title"
                                 type="text"
-                                placeholder="Automático"
+                                :placeholder="t('form.title_placeholder')"
                                 class="w-full bg-[#FAF8F5] dark:bg-[#141210] border border-[#D5CEC2] dark:border-[#38342E] px-3.5 py-2.5 text-sm text-[#2C2825] dark:text-[#F5F2EB] placeholder-[#9E978E] dark:placeholder-[#6B655D] focus:outline-none focus:border-[#2C2825] dark:focus:border-[#F5F2EB] focus:bg-white dark:focus:bg-[#181614] transition"
                             />
                         </div>
@@ -269,7 +283,7 @@ const formatRelative = (dateStr: string | null): string => {
 
                     <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-[#EFEBE4] dark:border-[#2A2723]">
                         <div class="flex items-center gap-2 text-xs text-[#756D63] dark:text-[#9C9488]">
-                            <span>Sugestões:</span>
+                            <span>{{ t('form.suggestions') }}</span>
                             <button type="button" @click="prefill('Laravel News', 'https://laravel-news.com')" class="underline hover:text-[#1A1816] dark:hover:text-[#F5F2EB]">Laravel News</button>
                             <span>&bull;</span>
                             <button type="button" @click="prefill('Overreacted', 'https://overreacted.io')" class="underline hover:text-[#1A1816] dark:hover:text-[#F5F2EB]">Overreacted</button>
@@ -282,7 +296,7 @@ const formatRelative = (dateStr: string | null): string => {
                             :disabled="form.processing"
                             class="px-6 py-2.5 bg-[#2C2825] dark:bg-[#F5F2EB] hover:bg-[#1A1816] dark:hover:bg-white text-[#FBF9F5] dark:text-[#141210] text-xs font-bold uppercase tracking-widest transition disabled:opacity-50"
                         >
-                            {{ form.processing ? 'Consultando Feed...' : 'Adicionar ao Registro' }}
+                            {{ form.processing ? t('form.submitting') : t('form.submit') }}
                         </button>
                     </div>
                 </form>
@@ -297,7 +311,7 @@ const formatRelative = (dateStr: string | null): string => {
                         ? 'border-[#2C2825] dark:border-[#F5F2EB] text-[#1A1816] dark:text-[#F5F2EB]'
                         : 'border-transparent text-[#756D63] dark:text-[#9C9488] hover:text-[#2C2825] dark:hover:text-[#F5F2EB]'"
                 >
-                    <span>Publicações Cadastradas</span>
+                    <span>{{ t('tabs.blogs') }}</span>
                     <span class="text-xs px-2 py-0.5 rounded-full bg-[#EAE5DC] dark:bg-[#2A2723] text-[#4A443D] dark:text-[#DCD7CE]">{{ blogs.length }}</span>
                 </button>
                 <button
@@ -307,15 +321,15 @@ const formatRelative = (dateStr: string | null): string => {
                         ? 'border-[#2C2825] dark:border-[#F5F2EB] text-[#1A1816] dark:text-[#F5F2EB]'
                         : 'border-transparent text-[#756D63] dark:text-[#9C9488] hover:text-[#2C2825] dark:hover:text-[#F5F2EB]'"
                 >
-                    <span>Artigos Recentes</span>
+                    <span>{{ t('tabs.posts') }}</span>
                     <span class="text-xs px-2 py-0.5 rounded-full bg-[#EAE5DC] dark:bg-[#2A2723] text-[#4A443D] dark:text-[#DCD7CE]">{{ recentPosts.length }}</span>
                 </button>
             </div>
 
-            <!-- Aba 1: Publicações Cadastradas com Ícones e Tipografia -->
+            <!-- Aba 1: Publicações Cadastradas com Selo de Alto Contraste para Ícones -->
             <div v-if="activeTab === 'blogs'" class="space-y-4">
                 <div v-if="blogs.length === 0" class="text-center py-16 bg-white dark:bg-[#1C1A18] border border-[#E4DFD5] dark:border-[#2D2A26] text-[#756D63] dark:text-[#9C9488] font-sans text-sm">
-                    Nenhuma publicação cadastrada no momento. Adicione a primeira acima.
+                    {{ t('blogs.empty') }}
                 </div>
 
                 <div
@@ -324,17 +338,17 @@ const formatRelative = (dateStr: string | null): string => {
                     class="bg-white dark:bg-[#1C1A18] border border-[#E4DFD5] dark:border-[#2D2A26] p-6 transition hover:border-[#D5CEC2] dark:hover:border-[#403B35]"
                 >
                     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                        <!-- Identificação do Blog com Ícone -->
+                        <!-- Identificação do Blog com Ícone em Selo de Alto Contraste -->
                         <div class="flex items-start gap-3.5 min-w-0">
-                            <!-- Ícone do Blog (Favicon com Fallback em Monograma) -->
-                            <div class="relative w-11 h-11 rounded-lg border border-[#E0DACE] dark:border-[#38342E] bg-[#FAF8F5] dark:bg-[#141210] p-1.5 flex items-center justify-center shrink-0 overflow-hidden shadow-xs">
-                                <span class="font-serif text-lg font-bold text-[#6B635B] dark:text-[#A8A096] select-none">
+                            <!-- Moldura com Fundo Claro e Borda Definida para Ícones Escuros / Transparentes -->
+                            <div class="relative w-11 h-11 rounded-lg border border-[#D5CEC2] dark:border-[#524B43] bg-white dark:bg-[#F5F2EB] p-1.5 flex items-center justify-center shrink-0 overflow-hidden shadow-xs ring-1 ring-black/5">
+                                <span class="font-serif text-lg font-bold text-[#2C2825] select-none">
                                     {{ blog.title ? blog.title.charAt(0).toUpperCase() : 'B' }}
                                 </span>
                                 <img
                                     :src="getFaviconUrl(blog.url)"
                                     :alt="blog.title"
-                                    class="absolute inset-0 w-full h-full object-contain p-1.5 rounded-lg bg-[#FAF8F5] dark:bg-[#141210]"
+                                    class="absolute inset-0 w-full h-full object-contain p-1.5 rounded-lg"
                                     loading="lazy"
                                     @error="handleImgError"
                                 />
@@ -357,16 +371,16 @@ const formatRelative = (dateStr: string | null): string => {
                                             ? 'border-[#2E6F40] dark:border-[#3B8A52] text-[#2E6F40] dark:text-[#6EE7B7] bg-[#F4F9F4] dark:bg-[#122E1B]'
                                             : 'border-[#948B80] dark:border-[#5A534B] text-[#948B80] dark:text-[#A8A096] bg-[#FAF8F5] dark:bg-[#201D1A]'"
                                     >
-                                        {{ blog.is_active ? 'Ativo' : 'Pausado' }}
+                                        {{ blog.is_active ? t('blogs.active') : t('blogs.paused') }}
                                     </span>
                                 </div>
 
                                 <p class="font-sans text-xs text-[#756D63] dark:text-[#9C9488] mt-1 truncate">
-                                    Notificar: <strong class="text-[#2C2825] dark:text-[#F5F2EB]">{{ blog.notify_email }}</strong>
+                                    {{ t('blogs.notify_to') }} <strong class="text-[#2C2825] dark:text-[#F5F2EB]">{{ blog.notify_email }}</strong>
                                     <span class="mx-1">&bull;</span>
-                                    <span>Verificado: {{ formatRelative(blog.last_checked_at) }}</span>
+                                    <span>{{ t('blogs.checked') }} {{ formatRelative(blog.last_checked_at) }}</span>
                                     <span class="mx-1">&bull;</span>
-                                    <span>{{ blog.posts_count }} artigo(s) arquivados</span>
+                                    <span>{{ t('blogs.articles_count', { count: blog.posts_count }) }}</span>
                                 </p>
                             </div>
                         </div>
@@ -377,9 +391,9 @@ const formatRelative = (dateStr: string | null): string => {
                                 @click="checkNow(blog.id)"
                                 :disabled="checkingBlogId === blog.id"
                                 class="px-3 py-1.5 border border-[#D5CEC2] dark:border-[#38342E] bg-[#FAF8F5] dark:bg-[#141210] hover:bg-white dark:hover:bg-[#25221E] text-[#2C2825] dark:text-[#EAE6DF] transition disabled:opacity-50"
-                                title="Verificar agora se há novos artigos no feed"
+                                :title="t('blogs.btn_check')"
                             >
-                                {{ checkingBlogId === blog.id ? 'Consultando...' : 'Verificar agora' }}
+                                {{ checkingBlogId === blog.id ? t('blogs.btn_checking') : t('blogs.btn_check') }}
                             </button>
 
                             <button
@@ -387,7 +401,7 @@ const formatRelative = (dateStr: string | null): string => {
                                 :disabled="togglingBlogId === blog.id"
                                 class="px-3 py-1.5 text-[#756D63] dark:text-[#9C9488] hover:text-[#1A1816] dark:hover:text-[#F5F2EB] transition"
                             >
-                                {{ blog.is_active ? 'Pausar' : 'Reativar' }}
+                                {{ blog.is_active ? t('blogs.btn_pause') : t('blogs.btn_resume') }}
                             </button>
 
                             <button
@@ -395,14 +409,16 @@ const formatRelative = (dateStr: string | null): string => {
                                 :disabled="deletingBlogId === blog.id"
                                 class="px-2.5 py-1.5 text-[#A32D2D] dark:text-[#F87171] hover:underline transition"
                             >
-                                Remover
+                                {{ t('blogs.btn_remove') }}
                             </button>
                         </div>
                     </div>
 
                     <!-- Último Post Registrado -->
                     <div v-if="blog.latest_post" class="mt-4 pt-3 border-t border-[#F0EBE3] dark:border-[#2A2723] font-sans text-xs">
-                        <span class="uppercase tracking-wider text-[10px] text-[#948B80] dark:text-[#7A7368] font-bold">Último artigo registrado:</span>
+                        <span class="uppercase tracking-wider text-[10px] text-[#948B80] dark:text-[#7A7368] font-bold">
+                            {{ t('blogs.latest_article') }}
+                        </span>
                         <a
                             :href="blog.latest_post.url"
                             target="_blank"
@@ -412,21 +428,21 @@ const formatRelative = (dateStr: string | null): string => {
                             {{ blog.latest_post.title }}
                         </a>
                         <span class="text-[11px] text-[#948B80] dark:text-[#7A7368] block mt-0.5">
-                            Publicado em {{ formatDate(blog.latest_post.published_at) }}
+                            {{ t('blogs.published_at', { date: formatDate(blog.latest_post.published_at) }) }}
                         </span>
                     </div>
 
                     <!-- Mensagem de Erro se houver -->
                     <div v-if="blog.last_error" class="mt-3 p-2 bg-[#FDF2F2] dark:bg-[#3D1414]/70 border border-[#F5C2C2] dark:border-[#EF4444]/40 text-xs font-sans text-[#A32D2D] dark:text-[#FECDD3]">
-                        Aviso na última checagem: {{ blog.last_error }}
+                        {{ t('blogs.error_prefix', { error: blog.last_error }) }}
                     </div>
                 </div>
             </div>
 
-            <!-- Aba 2: Artigos Recentes com Ícone da Publicação -->
+            <!-- Aba 2: Artigos Recentes com Ícone em Selo de Alto Contraste -->
             <div v-if="activeTab === 'posts'" class="space-y-3">
                 <div v-if="recentPosts.length === 0" class="text-center py-16 bg-white dark:bg-[#1C1A18] border border-[#E4DFD5] dark:border-[#2D2A26] text-[#756D63] dark:text-[#9C9488] font-sans text-sm">
-                    Nenhum artigo arquivado ainda.
+                    {{ t('posts.empty') }}
                 </div>
 
                 <div
@@ -435,15 +451,15 @@ const formatRelative = (dateStr: string | null): string => {
                     class="bg-white dark:bg-[#1C1A18] border border-[#E4DFD5] dark:border-[#2D2A26] p-5 transition hover:border-[#D5CEC2] dark:hover:border-[#403B35] flex items-start justify-between gap-4"
                 >
                     <div class="flex items-start gap-3 min-w-0">
-                        <!-- Mini Favicon do Blog no Artigo -->
-                        <div v-if="post.blog" class="relative w-6 h-6 rounded border border-[#E0DACE] dark:border-[#38342E] bg-[#FAF8F5] dark:bg-[#141210] p-0.5 flex items-center justify-center shrink-0 mt-0.5 overflow-hidden">
-                            <span class="font-serif text-[10px] font-bold text-[#6B635B] dark:text-[#A8A096] select-none">
+                        <!-- Mini Favicon do Blog no Artigo com Fundo em Alto Contraste -->
+                        <div v-if="post.blog" class="relative w-6 h-6 rounded border border-[#D5CEC2] dark:border-[#524B43] bg-white dark:bg-[#F5F2EB] p-0.5 flex items-center justify-center shrink-0 mt-0.5 overflow-hidden shadow-2xs">
+                            <span class="font-serif text-[10px] font-bold text-[#2C2825] select-none">
                                 {{ post.blog.title.charAt(0).toUpperCase() }}
                             </span>
                             <img
                                 :src="getFaviconUrl(post.blog.url)"
                                 :alt="post.blog.title"
-                                class="absolute inset-0 w-full h-full object-contain p-0.5 rounded bg-[#FAF8F5] dark:bg-[#141210]"
+                                class="absolute inset-0 w-full h-full object-contain p-0.5 rounded"
                                 loading="lazy"
                                 @error="handleImgError"
                             />
@@ -457,7 +473,7 @@ const formatRelative = (dateStr: string | null): string => {
                                 <span>&bull;</span>
                                 <span>{{ formatDate(post.published_at) }}</span>
                                 <span v-if="post.notified_at" class="text-[10px] uppercase font-mono px-1.5 py-0.2 bg-[#F2F7F2] dark:bg-[#122E1B] text-[#2E6F40] dark:text-[#6EE7B7] border border-[#CDE5D1] dark:border-[#1E4D2B]">
-                                    ✉ Notificado
+                                    ✉ {{ t('posts.notified') }}
                                 </span>
                             </div>
 
@@ -478,15 +494,15 @@ const formatRelative = (dateStr: string | null): string => {
                         rel="noopener noreferrer"
                         class="font-sans text-xs px-3 py-1.5 border border-[#D5CEC2] dark:border-[#38342E] bg-[#FAF8F5] dark:bg-[#141210] hover:bg-white dark:hover:bg-[#25221E] text-[#2C2825] dark:text-[#EAE6DF] shrink-0 transition"
                     >
-                        Ler artigo &rarr;
+                        {{ t('posts.read_more') }}
                     </a>
                 </div>
             </div>
 
             <!-- Rodapé Explicativo -->
             <footer class="pt-8 border-t border-[#EAE5DC] dark:border-[#2A2723] text-center font-sans text-xs text-[#948B80] dark:text-[#7A7368] space-y-1">
-                <p>Larablogs &bull; Edição Pessoal &bull; Desenvolvido com Laravel 13, Vue.js 3 e Inertia.js</p>
-                <p>Verificação automática em segundo plano via <code class="text-[#2C2825] dark:text-[#DCD7CE] bg-[#EFEBE4] dark:bg-[#201D1A] px-1.5 py-0.5 rounded">php artisan blogs:check</code></p>
+                <p>{{ t('footer.title') }}</p>
+                <p>{{ t('footer.command_info') }} <code class="text-[#2C2825] dark:text-[#DCD7CE] bg-[#EFEBE4] dark:bg-[#201D1A] px-1.5 py-0.5 rounded">php artisan blogs:check</code></p>
             </footer>
         </main>
     </div>

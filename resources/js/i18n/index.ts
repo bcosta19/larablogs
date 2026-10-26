@@ -21,7 +21,8 @@ export const translations = {
         header: {
             badge: 'Boletim Digital • Monitor de Feeds',
             title: 'Larablogs',
-            subtitle: 'Curadoria contínua de publicações da web com avisos diretos na sua caixa postal.',
+            subtitle:
+                'Curadoria contínua de publicações da web com avisos diretos na sua caixa postal.',
             stats_registered: '{count} publicações inscritas',
             stats_active: '{count} ativas',
             stats_archived: '{count} artigos arquivados',
@@ -32,7 +33,8 @@ export const translations = {
         },
         form: {
             title: 'Inscrever nova publicação',
-            subtitle: 'Insira o endereço do blog ou feed RSS para monitoramento e receba novas matérias.',
+            subtitle:
+                'Insira o endereço do blog ou feed RSS para monitoramento e receba novas matérias.',
             url_label: 'Endereço Web (URL) *',
             url_placeholder: 'https://exemplo.com ou feed RSS',
             email_label: 'E-mail Destinatário *',
@@ -61,7 +63,8 @@ export const translations = {
             btn_remove: 'Remover',
             latest_article: 'Último artigo registrado:',
             published_at: 'Publicado em {date}',
-            confirm_delete: 'Deseja remover "{title}" do monitoramento? Todos os artigos associados serão removidos.',
+            confirm_delete:
+                'Deseja remover "{title}" do monitoramento? Todos os artigos associados serão removidos.',
             error_prefix: 'Aviso na última checagem: {error}',
         },
         posts: {
@@ -81,11 +84,12 @@ export const translations = {
             command_info: 'Verificação automática em segundo plano via',
         },
     },
-    'en': {
+    en: {
         header: {
             badge: 'Digital Gazette • Feed Monitor',
             title: 'Larablogs',
-            subtitle: 'Continuous curation of web publications with instant notices delivered to your inbox.',
+            subtitle:
+                'Continuous curation of web publications with instant notices delivered to your inbox.',
             stats_registered: '{count} registered publications',
             stats_active: '{count} active',
             stats_archived: '{count} archived articles',
@@ -96,7 +100,8 @@ export const translations = {
         },
         form: {
             title: 'Subscribe a new publication',
-            subtitle: 'Enter the blog or RSS feed URL to monitor and receive notifications for new posts.',
+            subtitle:
+                'Enter the blog or RSS feed URL to monitor and receive notifications for new posts.',
             url_label: 'Web Address (URL) *',
             url_placeholder: 'https://example.com or RSS feed',
             email_label: 'Recipient Email *',
@@ -125,7 +130,8 @@ export const translations = {
             btn_remove: 'Remove',
             latest_article: 'Latest recorded article:',
             published_at: 'Published on {date}',
-            confirm_delete: 'Do you really want to remove "{title}" from monitoring? All associated articles will be deleted.',
+            confirm_delete:
+                'Do you really want to remove "{title}" from monitoring? All associated articles will be deleted.',
             error_prefix: 'Warning on last check: {error}',
         },
         posts: {
@@ -145,7 +151,7 @@ export const translations = {
             command_info: 'Automatic background check via',
         },
     },
-    'es': {
+    es: {
         header: {
             badge: 'Boletín Digital • Monitor de Feeds',
             title: 'Larablogs',
@@ -160,7 +166,8 @@ export const translations = {
         },
         form: {
             title: 'Inscribir nueva publicación',
-            subtitle: 'Ingrese la dirección del blog o feed RSS para monitorear y recibir nuevos artículos.',
+            subtitle:
+                'Ingrese la dirección del blog o feed RSS para monitorear y recibir nuevos artículos.',
             url_label: 'Dirección Web (URL) *',
             url_placeholder: 'https://ejemplo.com o feed RSS',
             email_label: 'Correo Destinatario *',
@@ -189,7 +196,8 @@ export const translations = {
             btn_remove: 'Eliminar',
             latest_article: 'Último artículo registrado:',
             published_at: 'Publicado el {date}',
-            confirm_delete: '¿Desea eliminar "{title}" del monitoreo? Todos los artículos asociados serán eliminados.',
+            confirm_delete:
+                '¿Desea eliminar "{title}" del monitoreo? Todos los artículos asociados serán eliminados.',
             error_prefix: 'Aviso en la última verificación: {error}',
         },
         posts: {
@@ -209,11 +217,12 @@ export const translations = {
             command_info: 'Verificación automática en segundo plano mediante',
         },
     },
-    'fr': {
+    fr: {
         header: {
             badge: 'Gazette Numérique • Moniteur de Flux',
             title: 'Larablogs',
-            subtitle: 'Sélection continue de publications web avec alertes directes dans votre boîte de réception.',
+            subtitle:
+                'Sélection continue de publications web avec alertes directes dans votre boîte de réception.',
             stats_registered: '{count} publications inscrites',
             stats_active: '{count} actives',
             stats_archived: '{count} articles archivés',
@@ -224,7 +233,8 @@ export const translations = {
         },
         form: {
             title: 'Abonner une nouvelle publication',
-            subtitle: 'Entrez l\'adresse du blog ou du flux RSS pour surveiller et recevoir les nouveaux articles.',
+            subtitle:
+                "Entrez l'adresse du blog ou du flux RSS pour surveiller et recevoir les nouveaux articles.",
             url_label: 'Adresse Web (URL) *',
             url_placeholder: 'https://exemple.com ou flux RSS',
             email_label: 'E-mail Destinataire *',
@@ -240,7 +250,7 @@ export const translations = {
             posts: 'Articles Récents',
         },
         blogs: {
-            empty: 'Aucune publication enregistrée pour l\'instant. Ajoutez la première ci-dessus.',
+            empty: "Aucune publication enregistrée pour l'instant. Ajoutez la première ci-dessus.",
             active: 'Actif',
             paused: 'En pause',
             notify_to: 'Notifier :',
@@ -253,17 +263,18 @@ export const translations = {
             btn_remove: 'Supprimer',
             latest_article: 'Dernier article enregistré :',
             published_at: 'Publié le {date}',
-            confirm_delete: 'Voulez-vous vraiment supprimer "{title}" de la surveillance ? Tous les articles associés seront supprimés.',
+            confirm_delete:
+                'Voulez-vous vraiment supprimer "{title}" de la surveillance ? Tous les articles associés seront supprimés.',
             error_prefix: 'Avertissement lors de la dernière vérification : {error}',
         },
         posts: {
             empty: 'Aucun article archivé pour le moment.',
             notified: 'Notifié',
-            read_more: 'Lire l\'article →',
+            read_more: "Lire l'article →",
         },
         time: {
             never: 'Jamais vérifié',
-            just_now: 'À l\'instant',
+            just_now: "À l'instant",
             minutes_ago: 'Il y a {count} min',
             hours_ago: 'Il y a {count} h',
             date_unknown: 'Date inconnue',
@@ -273,11 +284,12 @@ export const translations = {
             command_info: 'Vérification automatique en arrière-plan via',
         },
     },
-    'de': {
+    de: {
         header: {
             badge: 'Digitales Bulletin • Feed-Monitor',
             title: 'Larablogs',
-            subtitle: 'Kontinuierliche Kuration von Web-Publikationen mit Benachrichtigungen direkt in Ihr Postfach.',
+            subtitle:
+                'Kontinuierliche Kuration von Web-Publikationen mit Benachrichtigungen direkt in Ihr Postfach.',
             stats_registered: '{count} registrierte Publikationen',
             stats_active: '{count} aktiv',
             stats_archived: '{count} archivierte Artikel',
@@ -317,7 +329,8 @@ export const translations = {
             btn_remove: 'Entfernen',
             latest_article: 'Zuletzt erfasster Artikel:',
             published_at: 'Veröffentlicht am {date}',
-            confirm_delete: 'Möchten Sie "{title}" wirklich aus der Überwachung entfernen? Alle zugehörigen Artikel werden gelöscht.',
+            confirm_delete:
+                'Möchten Sie "{title}" wirklich aus der Überwachung entfernen? Alle zugehörigen Artikel werden gelöscht.',
             error_prefix: 'Warnung bei der letzten Überprüfung: {error}',
         },
         posts: {
@@ -344,7 +357,7 @@ const currentLocale = ref<LocaleCode>('pt-BR');
 export function useI18n() {
     const initLocale = () => {
         const saved = localStorage.getItem('larablogs_locale') as LocaleCode | null;
-        if (saved && (saved in translations)) {
+        if (saved && saved in translations) {
             currentLocale.value = saved;
         } else {
             // Tenta detectar o idioma do navegador
@@ -374,7 +387,7 @@ export function useI18n() {
                 val = val[k];
             } else {
                 // Fallback para inglês ou português
-                let fallbackVal: any = (translations['en'] as any);
+                let fallbackVal: any = translations['en'] as any;
                 for (const fk of keys) {
                     if (fallbackVal && typeof fallbackVal === 'object' && fk in fallbackVal) {
                         fallbackVal = fallbackVal[fk];

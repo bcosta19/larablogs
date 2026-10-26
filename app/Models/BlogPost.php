@@ -2,14 +2,24 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $blog_id
+ * @property string $guid
+ * @property string $title
+ * @property string $url
+ * @property Carbon|null $published_at
+ * @property Carbon|null $notified_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Blog $blog
+ */
 class BlogPost extends Model
 {
-    use HasFactory;
-
     /**
      * @var list<string>
      */
@@ -33,6 +43,9 @@ class BlogPost extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Blog, $this>
+     */
     public function blog(): BelongsTo
     {
         return $this->belongsTo(Blog::class);

@@ -2,15 +2,25 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * @property int $id
+ * @property string $title
+ * @property string $url
+ * @property string $feed_url
+ * @property string $notify_email
+ * @property bool $is_active
+ * @property Carbon|null $last_checked_at
+ * @property string|null $last_error
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 class Blog extends Model
 {
-    use HasFactory;
-
     /**
      * @var list<string>
      */
@@ -35,11 +45,17 @@ class Blog extends Model
         ];
     }
 
+    /**
+     * @return HasMany<BlogPost, $this>
+     */
     public function posts(): HasMany
     {
         return $this->hasMany(BlogPost::class);
     }
 
+    /**
+     * @return HasOne<BlogPost, $this>
+     */
     public function latestPost(): HasOne
     {
         return $this->hasOne(BlogPost::class)->latestOfMany('published_at');

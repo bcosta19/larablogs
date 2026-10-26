@@ -41,22 +41,24 @@ class FeedService
         }
 
         $body = $response->body();
-        $contentType = strtolower($response->header('Content-Type') ?? '');
+        $contentType = strtolower((string) $response->header('Content-Type'));
+
+        $fallbackHost = (string) (parse_url($url, PHP_URL_HOST) ?: 'Blog');
 
         // Caso a própria URL informada já seja um Feed XML (RSS / Atom)
         if ($this->isXmlContent($contentType, $body)) {
             $parsed = $this->parseXml($body);
 
             return [
-                'title' => $parsed['title'] ?: parse_url($url, PHP_URL_HOST),
+                'title' => $parsed['title'] !== '' ? $parsed['title'] : $fallbackHost,
                 'feed_url' => $url,
-                'website_url' => $parsed['website_url'] ?: $url,
+                'website_url' => $parsed['website_url'] !== '' ? $parsed['website_url'] : $url,
             ];
         }
 
         // Caso seja página HTML, procurar tags <link rel="alternate">
         $extracted = $this->findFeedInHtml($body, $url);
-        if ($extracted) {
+        if ($extracted !== null) {
             return $extracted;
         }
 
@@ -73,9 +75,10 @@ class FeedService
 
                 if ($candidateRes->successful() && $this->isXmlContent($candidateRes->header('Content-Type'), $candidateRes->body())) {
                     $parsed = $this->parseXml($candidateRes->body());
+                    $siteTitle = $this->extractHtmlTitle($body);
 
                     return [
-                        'title' => $parsed['title'] ?: ($this->extractHtmlTitle($body) ?: parse_url($url, PHP_URL_HOST)),
+                        'title' => $parsed['title'] !== '' ? $parsed['title'] : ($siteTitle ?? $fallbackHost),
                         'feed_url' => $candidateUrl,
                         'website_url' => $url,
                     ];
@@ -110,10 +113,13 @@ class FeedService
 
     /**
      * Procura tags <link rel="alternate" ...> no HTML.
+     *
+     * @return array{title: string, feed_url: string, website_url: string}|null
      */
     protected function findFeedInHtml(string $html, string $originalUrl): ?array
     {
         $siteTitle = $this->extractHtmlTitle($html);
+        $fallbackHost = (string) (parse_url($originalUrl, PHP_URL_HOST) ?: 'Blog');
 
         // Regex para capturar <link> com feed
         $pattern = '/<link\s+[^>]*rel=["\']alternate["\'][^>]*>/i';
@@ -130,7 +136,7 @@ class FeedService
                             $parsed = $this->parseXml($feedRes->body());
 
                             return [
-                                'title' => $siteTitle ?: ($parsed['title'] ?: parse_url($originalUrl, PHP_URL_HOST)),
+                                'title' => $siteTitle ?: ($parsed['title'] !== '' ? $parsed['title'] : $fallbackHost),
                                 'feed_url' => $feedUrl,
                                 'website_url' => $originalUrl,
                             ];
@@ -194,7 +200,6 @@ class FeedService
      */
     public function parseXml(string $xmlContent): array
     {
-        // Limpar possíveis prefixos e caracteres inválidos
         $xmlContent = trim($xmlContent);
         libxml_use_internal_errors(true);
         $xml = simplexml_load_string($xmlContent, 'SimpleXMLElement', LIBXML_NOCDATA);
@@ -228,7 +233,7 @@ class FeedService
                     }
                 }
 
-                if ($title && ($link || $guid)) {
+                if ($title !== '') {
                     $items[] = [
                         'guid' => substr($guid, 0, 250),
                         'title' => $title,
@@ -237,8 +242,7 @@ class FeedService
                     ];
                 }
             }
-        }
-        // Verifica se é Atom
+        } // Verifica se é Atom
         elseif ($xml->getName() === 'feed') {
             $feedTitle = (string) $xml->title;
 
@@ -278,7 +282,7 @@ class FeedService
                     }
                 }
 
-                if ($title && ($entryLink || $guid)) {
+                if ($title !== '') {
                     $items[] = [
                         'guid' => substr($guid, 0, 250),
                         'title' => $title,

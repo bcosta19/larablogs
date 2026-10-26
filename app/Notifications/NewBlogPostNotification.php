@@ -32,8 +32,10 @@ class NewBlogPostNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $published = $this->post->published_at
-            ? $this->post->published_at->timezone('America/Sao_Paulo')->format('d/m/Y H:i')
+        $publishedAt = $this->post->published_at;
+
+        $published = $publishedAt !== null
+            ? $publishedAt->timezone('America/Sao_Paulo')->format('d/m/Y H:i')
             : 'Recentemente';
 
         return (new MailMessage)

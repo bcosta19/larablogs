@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Larablogs Pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo, sqlite, pdo_sqlite
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install Composer Dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      - name: Prepare Application Environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          touch database/database.sqlite
+          php artisan migrate --force
+
+      - name: Security - Composer Audit
+        run: composer audit
+
+      - name: Security - NPM Audit
+        run: npm audit
+
+      - name: PHP Code Style - Pint
+        run: ./vendor/bin/pint --test
+
+      - name: PHP Static Analysis - PHPStan
+        run: ./vendor/bin/phpstan analyse --memory-limit=512M
+
+      - name: Frontend Quality - ESLint, Prettier & TypeScript
+        run: npm run check
+
+      - name: Frontend Build - Vite
+        run: npm run build
+
+      - name: Backend Tests - Pest (SQLite :memory:)
+        run: ./vendor/bin/pest
+
+      - name: Prepare ChromeDriver for Dusk
+        run: php artisan dusk:chrome-driver --detect
+
+      - name: Start Laravel Server & Run Browser Tests (Dusk)
+        run: |
+          php artisan serve --port=8000 &
+          for i in {1..30}; do
+            if curl -s http://localhost:8000 > /dev/null 2>&1; then
+              break
+            fi
+            sleep 0.5
+          done
+          php artisan dusk

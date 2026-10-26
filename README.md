@@ -118,13 +118,31 @@ For production or continuous background checks on Linux, add a single entry to y
 
 ---
 
-## Tests
+## Testing & Code Quality
 
-The project includes feature tests covering feed discovery, baseline synchronization, notifications, and CLI commands:
+Larablogs features an automated quality and testing pipeline covering security audits, backend unit/feature tests with Pest, frontend TypeScript & Vue validations, static analysis at PHPStan level 7, and browser end-to-end tests with Laravel Dusk.
+
+### Run the Full Pipeline
+
+Run every check locally before committing:
 
 ```sh
-php artisan test
+./bin/ci
+# or
+composer ci
 ```
+
+### Individual Commands
+
+| Tool | Purpose | Command |
+|---|---|---|
+| **Pest** | Unit & Feature tests (SQLite `:memory:`) | `./vendor/bin/pest` *(or `composer test`)* |
+| **Laravel Dusk** | End-to-end headless browser testing | `php artisan dusk` *(or `composer dusk`)* |
+| **PHPStan** | Level 7 static analysis | `./vendor/bin/phpstan analyse --memory-limit=512M` |
+| **Laravel Pint** | PHP code style & PSR standards | `composer lint:check` *(fix with `composer lint`)* |
+| **ESLint + Prettier** | Vue 3 & TypeScript code quality | `npm run check` *(fix with `npm run format && npm run lint`)* |
+| **Security Audits** | PHP & Node package vulnerabilities | `composer audit && npm audit` |
+| **Vite** | Frontend production build | `npm run build` |
 
 ---
 

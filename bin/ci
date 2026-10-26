@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Define styling
+BOLD='\033[1m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+
+step() {
+    echo -e "\n${BOLD}${BLUE}==>${NC} ${BOLD}$1${NC}"
+}
+
+success() {
+    echo -e "${GREEN}✓ $1${NC}"
+}
+
+SERVER_PID=""
+cleanup() {
+    if [[ -n "$SERVER_PID" ]]; then
+        echo -e "\n${YELLOW}Stopping background test server (PID $SERVER_PID)...${NC}"
+        kill "$SERVER_PID" 2>/dev/null || true
+    fi
+}
+trap cleanup EXIT
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$DIR"
+
+echo -e "${BOLD}Starting Larablogs Quality & CI Pipeline...${NC}"
+
+# 1. Composer Security Audit
+step "[1/8] Security: Composer Audit"
+composer audit
+success "Composer audit passed (0 advisories)"
+
+# 2. NPM Security Audit
+step "[2/8] Security: NPM Audit"
+npm audit
+success "NPM audit passed (0 vulnerabilities)"
+
+# 3. PHP Code Style (Pint)
+step "[3/8] PHP Code Style: Laravel Pint"
+./vendor/bin/pint --test
+success "Laravel Pint passed"
+
+# 4. PHP Static Analysis (PHPStan Level 7)
+step "[4/8] PHP Static Analysis: PHPStan"
+./vendor/bin/phpstan analyse --memory-limit=512M
+success "PHPStan passed with 0 errors"
+
+# 5. Frontend Quality (ESLint + Prettier + TypeScript)
+step "[5/8] Frontend Quality: ESLint, Prettier & vue-tsc"
+npm run check
+success "Frontend quality checks passed"
+
+# 6. Frontend Build (Vite)
+step "[6/8] Frontend Build: Vite Production Build"
+npm run build
+success "Vite build completed successfully"
+
+# 7. Backend Tests (Pest + SQLite in-memory)
+step "[7/8] Backend Tests: Pest (Unit & Feature)"
+./vendor/bin/pest
+success "All Pest tests passed"
+
+# 8. Frontend Browser Tests (Laravel Dusk)
+step "[8/8] Browser Tests: Laravel Dusk"
+if ! curl -s -o /dev/null -w "%{http_code}" http://localhost:8000 | grep -q "200\|302"; then
+    echo "Starting local server on port 8000 for Dusk tests..."
+    php artisan serve --port=8000 > /dev/null 2>&1 &
+    SERVER_PID=$!
+    # Wait for server to respond
+    for _ in {1..30}; do
+        if curl -s http://localhost:8000 > /dev/null 2>&1; then
+            break
+        fi
+        sleep 0.2
+    done
+fi
+
+php artisan dusk
+success "All Laravel Dusk browser tests passed"
+
+echo -e "\n${BOLD}${GREEN}========================================"
+echo -e "  🎉 ALL PIPELINE CHECKS PASSED!"
+echo -e "========================================${NC}\n"

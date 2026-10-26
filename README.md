@@ -2,83 +2,84 @@
   <img src="public/favicon.svg" width="96" height="96" alt="Larablogs icon">
 </p>
 <h1 align="center">Larablogs</h1>
-<p align="center"><strong>Curadoria contínua e radar pessoal de blogs com notificações instantâneas.</strong></p>
+<p align="center"><strong>Personal web & RSS feed radar with instant email notifications.</strong></p>
 <p align="center">
-  <a href="#o-que-você-pode-fazer">Recursos</a> ·
-  <a href="#telas-do-projeto">Capturas de tela</a> ·
-  <a href="#instalação">Instalação</a> ·
-  <a href="#verificação-em-segundo-plano">Background Scheduler</a> ·
-  <a href="#stack-e-requisitos">Stack</a> ·
-  <a href="#testes">Testes</a>
+  <a href="#what-you-can-do">Features</a> ·
+  <a href="#screenshots">Screenshots</a> ·
+  <a href="#installation">Installation</a> ·
+  <a href="#background-scheduler">Background Scheduler</a> ·
+  <a href="#stack-and-requirements">Stack</a> ·
+  <a href="#tests">Tests</a> ·
+  <a href="README.pt-BR.md">Português</a>
 </p>
 
-Um monitor pessoal de publicações da web construído com **PHP 8.5, Laravel 13, Vue.js 3, Inertia.js e Tailwind CSS v4**.
-Basta colar a URL de qualquer blog ou feed RSS para acompanhar novas postagens e receber alertas instantâneos no seu e-mail, com linha de base anti-spam e uma interface editorial serena com suporte a múltiplos idiomas e temas.
+A personal web publication and feed monitor built with **PHP 8.5, Laravel 13, Vue.js 3, Inertia.js and Tailwind CSS v4**.
+Paste any blog or RSS/Atom feed URL to track new posts and receive instant alerts straight to your inbox, featuring intelligent anti-spam baseline sync and a distraction-free editorial interface with multi-language and dark mode support.
 
 ---
 
-## Telas do projeto
+## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/larablogs-dark.png" alt="Larablogs em Tema Escuro (Editorial Midnight) com publicações cadastradas, ícones e estatísticas" width="100%">
+  <img src="docs/screenshots/larablogs-dark.png" alt="Larablogs in Default Dark Theme (Midnight Editorial) with monitored publications, stamps and stats" width="100%">
 </p>
 
-*Tema Escuro padrão (Editorial Midnight) — tipografia clássica, selos de alto contraste para favicons escuros e controle de verificação.*
+*Default Dark Theme (Midnight Editorial) — classical typography, high-contrast stamps for dark favicons, and manual verification triggers.*
 
 <p align="center">
-  <img src="docs/screenshots/larablogs-posts.png" alt="Larablogs - Aba de Últimos Artigos Detectados" width="100%">
+  <img src="docs/screenshots/larablogs-posts.png" alt="Larablogs - Recent Articles Tab" width="100%">
 </p>
 
-*Aba de Artigos Recentes — identificação visual imediata pelo favicon do blog de origem e status de notificação enviada.*
+*Recent Articles tab — instant visual identification with origin blog favicons and delivery notification badges.*
 
 <p align="center">
-  <img src="docs/screenshots/larablogs-light.png" alt="Larablogs em Tema Claro (Papel Marfim Editorial)" width="100%">
+  <img src="docs/screenshots/larablogs-light.png" alt="Larablogs in Light Theme (Warm Ivory Paper)" width="100%">
 </p>
 
-*Tema Claro alternativo no estilo tradicional de folhetim e papel marfim.*
+*Optional Light Mode rendered in traditional warm ivory newsprint.*
 
 ---
 
-## O que você pode fazer
+## What you can do
 
-| Recurso | No Larablogs |
+| Feature | In Larablogs |
 |---|---|
-| **Descoberta Inteligente** | Insira apenas a URL principal do blog (ex.: `https://laravel-news.com`); o sistema localiza automaticamente as tags RSS/Atom no HTML ou rotas comuns (`/feed`, `/rss`, `/atom.xml`). |
-| **Linha de Base Anti-Spam** | Ao cadastrar um blog, os artigos já existentes são arquivados como baseline sem disparar e-mails retroativos. Apenas novos artigos após o cadastro geram alertas. |
-| **Design Editorial** | Tipografia clássica de jornal e boletim periódico com modo escuro nativo (*Midnight Editorial*) e alternância instantânea para modo claro com persistência em `localStorage`. |
-| **Selos de Alto Contraste** | Molduras de alto contraste para logotipos e favicons garantem nitidez mesmo quando o ícone do site for preto ou tiver fundo transparente. |
-| **Multi-idioma (i18n)** | Suporte completo a 5 idiomas no cabeçalho: 🇧🇷 Português, 🇺🇸 English, 🇪🇸 Español, 🇫🇷 Français e 🇩🇪 Deutsch, com datas e tempos relativos formatados de acordo com o idioma. |
-| **Notificação Direta (Zero-Queue)** | Envio síncrono das notificações por e-mail no próprio processo da checagem, sem necessidade obrigatória de workers ou filas adicionais. |
-| **Controle Individual** | Verificação sob demanda via botão (*Check now*), pausa/retomada de monitoramento e exclusão com confirmação. |
+| **Smart Feed Discovery** | Enter just the blog URL (e.g., `https://laravel-news.com`); the engine automatically parses HTML for RSS/Atom `<link>` tags and common endpoints (`/feed`, `/rss`, `/atom.xml`). |
+| **Anti-Spam Baseline** | Upon subscription, existing published posts are captured as a starting baseline without sending bulk historic emails. Only *new* articles published thereafter trigger alerts. |
+| **Editorial Aesthetics** | Classical newspaper & literary journal typography with native Dark Theme (*Midnight Editorial*) as default, and instant 1-click toggle to Light Mode with `localStorage` persistence. |
+| **High-Contrast Stamps** | Protective light background frames ensure dark, black, or transparent PNG favicons remain crisp and readable in dark mode. |
+| **Multi-Language (i18n)** | Seamless real-time switching between 5 languages: 🇺🇸 English, 🇧🇷 Portuguese, 🇪🇸 Spanish, 🇫🇷 French, and 🇩🇪 German, with localized dates and relative timestamps. |
+| **Synchronous Notifications** | Inline delivery on execution — no Redis, queue workers, or external daemons required to receive alerts. |
+| **Individual Control** | On-demand manual checking (*Check now* button), pause/resume toggling, and publication deletion with confirmation. |
 
 ---
 
-## Stack e requisitos
+## Stack and requirements
 
 - **PHP**: 8.5.x
 - **Node.js**: 24.x
 - **Laravel**: 13.x
 - **Frontend**: Vue.js 3, Inertia.js 3, Tailwind CSS v4, Vite
-- **Banco de Dados**: SQLite (zero-config, em `database/database.sqlite`)
-- **Versionamento de Runtime**: `mise` (`mise.toml`)
+- **Database**: SQLite (zero-config, stored in `database/database.sqlite`)
+- **Version Management**: `mise` (`mise.toml`)
 
 ---
 
-## Instalação
+## Installation
 
-### 1. Clonar o repositório
+### 1. Clone the repository
 ```sh
 git clone git@github.com:bcosta19/larablogs.git
 cd larablogs
 ```
 
-### 2. Instalar dependências
+### 2. Install dependencies
 ```sh
 composer install
 npm install
 ```
 
-### 3. Configurar ambiente e banco de dados
+### 3. Setup environment and database
 ```sh
 cp .env.example .env
 php artisan key:generate
@@ -86,40 +87,40 @@ touch database/database.sqlite
 php artisan migrate
 ```
 
-### 4. Executar em desenvolvimento
+### 4. Run in development
 ```sh
 composer run dev
 ```
-*(ou separadamente em dois terminais: `php artisan serve` e `npm run dev`)*
+*(or run separately in two terminal tabs: `php artisan serve` and `npm run dev`)*
 
-Abra no navegador em: **`http://localhost:8000`**
+Open your browser at: **`http://localhost:8000`**
 
 ---
 
-## Verificação em segundo plano
+## Background Scheduler
 
-O comando Artisan responsável por varrer os feeds cadastrados e disparar os alertas é o:
+The Artisan command responsible for crawling feeds and dispatching notifications is:
 ```sh
 php artisan blogs:check
 ```
 
-Para manter o agendador nativo do Laravel escutando em desenvolvimento:
+To run the Laravel scheduler during local development:
 ```sh
 php artisan schedule:work
 ```
 
-Para produção ou execução contínua no Linux, basta uma única linha no seu crontab (`crontab -e`):
+For production or continuous background checks on Linux, add a single entry to your crontab (`crontab -e`):
 ```cron
-* * * * * cd /caminho/para/larablogs && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /path/to/larablogs && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-> **Dica de E-mail Local**: Por padrão, o Laravel utiliza `MAIL_MAILER=log`, gravando os e-mails disparados em `storage/logs/laravel.log`. Para visualizar os e-mails com interface web em desenvolvimento, aponte para um servidor [Mailpit](https://github.com/axllent/mailpit) na porta `1025` no seu `.env`.
+> **Local Email Testing**: By default, Laravel uses `MAIL_MAILER=log`, writing sent emails to `storage/logs/laravel.log`. To inspect formatted emails with a web inbox during development, point to a local [Mailpit](https://github.com/axllent/mailpit) server on port `1025` in your `.env`.
 
 ---
 
-## Testes
+## Tests
 
-A aplicação inclui suite completa de testes de feature cobrindo a descoberta de feed, baseline, checagem, notificações e comandos CLI:
+The project includes feature tests covering feed discovery, baseline synchronization, notifications, and CLI commands:
 
 ```sh
 php artisan test
@@ -127,6 +128,6 @@ php artisan test
 
 ---
 
-## Licença
+## License
 
-Distribuído sob a licença [MIT](LICENSE).
+Distributed under the [MIT](LICENSE) License.

@@ -121,3 +121,29 @@ test('local user can configure email without exposing the key again', function (
             ->assertInputValue('#mail-key', '');
     });
 });
+
+test('blog navigation keeps posts separate and opens the internal reader', function () {
+    $this->browse(function (Browser $browser) {
+        $browser->visit('/')->waitForText('Reader fixture')
+            ->click('a[href="/blogs/1"]')->waitForText('An article for reading')
+            ->assertDontSee('Other blog article')
+            ->click('a[href="/posts/1/read"]')->waitFor('@article-content')
+            ->assertPathIs('/posts/1/read')->assertSee('This is the isolated reader content.');
+    });
+});
+
+test('first login requires changing the temporary password', function () {
+    $this->browse(function (Browser $browser) {
+        $browser->visit('/account/password')->waitFor('#current-password');
+        $browser->script("document.querySelector('.account-signout').click()");
+        $browser->waitFor('#login-email')
+            ->type('#login-email', 'temporary@example.com')
+            ->type('#login-password', 'temporary-fixture-password')
+            ->click('@login-submit')->waitFor('#current-password')
+            ->assertPathIs('/account/password')
+            ->type('#current-password', 'temporary-fixture-password')
+            ->type('#new-password', 'new-browser-fixture-password')
+            ->type('#confirm-password', 'new-browser-fixture-password')
+            ->click('@password-submit')->waitFor('@design-menu')->assertPathIs('/');
+    });
+});

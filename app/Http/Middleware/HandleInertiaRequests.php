@@ -48,7 +48,7 @@ class HandleInertiaRequests extends Middleware
             'locale' => $locale,
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user()?->only(['id', 'name', 'email']),
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

@@ -11,6 +11,12 @@ use PHPUnit\Framework\Attributes\BeforeClass;
 
 abstract class DuskTestCase extends BaseTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->browse(fn ($browser) => $browser->loginAs(1));
+    }
+
     /**
      * Prepare for Dusk test execution.
      */

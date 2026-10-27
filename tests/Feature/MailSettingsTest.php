@@ -2,10 +2,16 @@
 
 use App\Jobs\SendMailTest;
 use App\Models\MailSetting;
+use App\Models\User;
 use App\Services\MailSettings;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia as Assert;
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->create(['is_owner' => true]));
+});
 
 test('local setup encrypts the key and does not expose it to the page', function () {
     $this->withServerVariables(['REMOTE_ADDR' => '127.0.0.1'])->post('/settings/mail', [
@@ -27,10 +33,11 @@ test('local setup encrypts the key and does not expose it to the page', function
         ->and(config('mail.from.address'))->toBe('reader@example.com');
 });
 
-test('remote requests cannot change mail settings', function () {
-    $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.2'])->post('/settings/mail', [
+test('unauthenticated requests cannot change mail settings', function () {
+    Auth::logout();
+    $this->post('/settings/mail', [
         'provider' => 'resend', 'api_key' => 'test-secret-key', 'from_address' => 'reader@example.com',
-    ])->assertForbidden();
+    ])->assertRedirect('/login');
     expect(MailSetting::count())->toBe(0);
 });
 
@@ -64,8 +71,8 @@ test('the queued test sends and sanitizes failures', function () {
 test('test email requires a saved configuration and a local request', function () {
     $this->post('/settings/mail/test', ['recipient' => 'recipient@example.com'])
         ->assertSessionHasErrorsIn('mailTest', ['recipient']);
-    $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.2'])
-        ->post('/settings/mail/test', ['recipient' => 'recipient@example.com'])->assertForbidden();
+    Auth::logout();
+    $this->post('/settings/mail/test', ['recipient' => 'recipient@example.com'])->assertRedirect('/login');
 });
 
 test('database worker processes the encrypted queued test', function () {
@@ -87,7 +94,8 @@ test('test status is accessible locally and reports worker results', function ()
     $this->getJson('/settings/mail/test/test-result')->assertOk()->assertJson(['status' => 'pending']);
     (new SendMailTest('recipient@example.com', 'test-result'))->failed(null);
     $this->getJson('/settings/mail/test/test-result')->assertOk()->assertJson(['status' => 'failed']);
-    $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.2'])->getJson('/settings/mail/test/test-result')->assertForbidden();
+    Auth::logout();
+    $this->getJson('/settings/mail/test/test-result')->assertUnauthorized();
 });
 
 test('test request queues the selected language', function () {

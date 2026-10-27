@@ -18,13 +18,23 @@ class SendMailTest implements ShouldBeEncrypted, ShouldQueue
 
     public int $backoff = 60;
 
-    public function __construct(public string $recipient, public string $resultId, public string $locale = 'en') {}
+    public string $locale = 'en';
+
+    public ?string $resultId = null;
+
+    public function __construct(public string $recipient, string $resultId, string $locale = 'en')
+    {
+        $this->resultId = $resultId;
+        $this->locale = $locale;
+    }
 
     public function handle(MailSettings $settings): void
     {
         try {
             $settings->sendTest($this->recipient, $this->locale);
-            DB::table('mail_test_results')->where('id', $this->resultId)->update(['status' => 'sent', 'updated_at' => now()]);
+            if (isset($this->resultId)) {
+                DB::table('mail_test_results')->where('id', $this->resultId)->update(['status' => 'sent', 'updated_at' => now()]);
+            }
         } catch (Throwable) {
             throw new RuntimeException('Falha ao enviar o e-mail de teste. Verifique a configuração do serviço.');
         }
@@ -32,6 +42,8 @@ class SendMailTest implements ShouldBeEncrypted, ShouldQueue
 
     public function failed(?Throwable $exception): void
     {
-        DB::table('mail_test_results')->where('id', $this->resultId)->update(['status' => 'failed', 'updated_at' => now()]);
+        if (isset($this->resultId)) {
+            DB::table('mail_test_results')->where('id', $this->resultId)->update(['status' => 'failed', 'updated_at' => now()]);
+        }
     }
 }

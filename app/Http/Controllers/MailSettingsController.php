@@ -17,10 +17,7 @@ class MailSettingsController extends Controller
 {
     public static function available(Request $request): bool
     {
-        return in_array($request->server('REMOTE_ADDR'), ['127.0.0.1', '::1'], true)
-            && in_array($request->getHost(), ['localhost', '127.0.0.1', '::1'], true)
-            && ! $request->headers->has('Forwarded')
-            && ! $request->headers->has('X-Forwarded-For');
+        return $request->user()?->is_owner === true;
     }
 
     public function update(Request $request): RedirectResponse

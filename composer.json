@@ -73,7 +73,7 @@
             "./vendor/bin/pest"
         ],
         "dusk": [
-            "@php artisan dusk"
+            "bash bin/dusk"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

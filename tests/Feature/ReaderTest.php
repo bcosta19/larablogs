@@ -2,10 +2,15 @@
 
 use App\Models\Blog;
 use App\Models\BlogPost;
+use App\Models\User;
 use App\Services\ArticleReader;
 use App\Services\PublicArticleUrl;
 use Illuminate\Support\Facades\Http;
 use Inertia\Testing\AssertableInertia as Assert;
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->create(['is_owner' => true]));
+});
 
 function readerBlog(string $title): Blog
 {

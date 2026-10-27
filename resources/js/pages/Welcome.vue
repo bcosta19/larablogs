@@ -3,6 +3,10 @@ import { Head, useForm, router, usePage } from '@inertiajs/vue3';
 import { ref, computed, onMounted } from 'vue';
 import type { BlogItem, BlogPostItem, BlogStats, FlashMessages } from '@/types';
 import { useI18n, type LocaleCode } from '@/i18n';
+import TerminalTheme from '@/components/themes/TerminalTheme.vue';
+import LinearTheme from '@/components/themes/LinearTheme.vue';
+import NeoBrutalismTheme from '@/components/themes/NeoBrutalismTheme.vue';
+import BentoTheme from '@/components/themes/BentoTheme.vue';
 
 interface Props {
     blogs: BlogItem[];
@@ -11,6 +15,24 @@ interface Props {
 }
 
 defineProps<Props>();
+
+const themes = {
+    editorial: null,
+    linear: LinearTheme,
+    terminal: TerminalTheme,
+    neobrutalism: NeoBrutalismTheme,
+    bento: BentoTheme,
+} as const;
+type ThemeKey = keyof typeof themes;
+const selectedTheme = ref<ThemeKey>('editorial');
+const previewTheme = ref<ThemeKey | null>(null);
+const displayedTheme = computed(() => previewTheme.value ?? selectedTheme.value);
+const candidateTheme = ref<ThemeKey>('editorial');
+const applySelectedTheme = () => {
+    selectedTheme.value = candidateTheme.value;
+    previewTheme.value = null;
+    localStorage.setItem('larablogs_theme', selectedTheme.value);
+};
 
 const page = usePage();
 const flash = computed<FlashMessages>(() => (page.props as any).flash || {});
@@ -35,6 +57,11 @@ const isDark = ref(true);
 
 onMounted(() => {
     initLocale();
+    const saved = localStorage.getItem('larablogs_theme');
+    if (saved && Object.hasOwn(themes, saved)) {
+        selectedTheme.value = saved as ThemeKey;
+        candidateTheme.value = selectedTheme.value;
+    }
 
     const savedTheme = localStorage.getItem('larablogs_theme_mode');
     if (savedTheme) {
@@ -145,7 +172,145 @@ const handleImgError = (event: Event) => {
 <template>
     <Head :title="t('header.title') + ' - ' + t('header.badge')" />
 
+    <nav :class="{ 'is-dark': isDark }" class="theme-nav" :aria-label="t('theme.choose')">
+        <div class="max-w-4xl mx-auto">
+            <!-- Barra de Ferramentas Superior: Idioma e Tema -->
+            <div class="flex flex-wrap items-center justify-between gap-3 font-sans text-xs">
+                <!-- Seletor de Idioma -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-400 dark:text-slate-500">🌐</span>
+                    <div class="relative inline-block">
+                        <select
+                            dusk="locale-select"
+                            :value="currentLocale"
+                            class="appearance-none bg-white dark:bg-[#1C1A18] border border-[#D5CEC2] dark:border-[#38342E] text-[#544E46] dark:text-[#B5ADA3] pl-2.5 pr-7 py-1.5 rounded-full font-medium focus:outline-none focus:border-[#2C2825] dark:focus:border-[#F5F2EB] shadow-2xs transition cursor-pointer"
+                            @change="handleLocaleChange"
+                        >
+                            <option
+                                v-for="loc in availableLocales"
+                                :key="loc.code"
+                                :value="loc.code"
+                            >
+                                {{ loc.flag }} {{ loc.name }}
+                            </option>
+                        </select>
+                        <span
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-[#756D63] dark:text-[#9C9488]"
+                        >
+                            <svg
+                                class="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M19 9l-7 7-7-7"
+                                />
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="theme-picker" role="region" :aria-label="t('theme.choose')">
+                    <label for="design-theme">{{ t('theme.choose') }}</label>
+                    <select id="design-theme" v-model="candidateTheme" dusk="design-select">
+                        <option value="editorial">Editorial</option>
+                        <option value="linear">Linear / Raycast</option>
+                        <option value="terminal">Hacker TUI</option>
+                        <option value="neobrutalism">Neo-Brutalism</option>
+                        <option value="bento">Apple Bento</option>
+                    </select>
+                    <button
+                        type="button"
+                        dusk="design-preview"
+                        @click="previewTheme = candidateTheme"
+                    >
+                        {{ t('theme.preview') }}
+                    </button>
+                    <button type="button" dusk="design-apply" @click="applySelectedTheme">
+                        {{ t('theme.apply') }}
+                    </button>
+                    <button
+                        v-if="previewTheme !== null"
+                        type="button"
+                        dusk="design-cancel"
+                        @click="
+                            previewTheme = null;
+                            candidateTheme = selectedTheme;
+                        "
+                    >
+                        {{ t('theme.cancel') }}
+                    </button>
+                    <span v-if="previewTheme !== null" role="status">{{
+                        t('theme.previewing')
+                    }}</span>
+                </div>
+                <!-- Botão Alternador de Tema Claro / Escuro -->
+                <button
+                    dusk="theme-toggle"
+                    type="button"
+                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#D5CEC2] dark:border-[#38342E] bg-white dark:bg-[#1C1A18] hover:bg-[#FAF8F5] dark:hover:bg-[#25221E] text-xs text-[#544E46] dark:text-[#B5ADA3] transition shadow-2xs"
+                    :title="isDark ? t('theme.light') : t('theme.dark')"
+                    @click="toggleTheme"
+                >
+                    <svg
+                        v-if="isDark"
+                        class="w-3.5 h-3.5 text-amber-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                        />
+                    </svg>
+                    <svg
+                        v-else
+                        class="w-3.5 h-3.5 text-slate-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                        />
+                    </svg>
+                    <span class="font-medium">{{
+                        isDark ? t('theme.light') : t('theme.dark')
+                    }}</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+    <component
+        :is="themes[displayedTheme]"
+        v-if="displayedTheme !== 'editorial'"
+        :blogs="blogs"
+        :recent-posts="recentPosts"
+        :stats="stats"
+        :flash="flash"
+        :form="form"
+        :checking-blog-id="checkingBlogId"
+        :toggling-blog-id="togglingBlogId"
+        :deleting-blog-id="deletingBlogId"
+        @update-form="(field, value) => (form[field] = value)"
+        @submit="submitBlog"
+        @prefill="prefill"
+        @check-now="checkNow"
+        @toggle="toggleBlog"
+        @delete="deleteBlog"
+    />
     <div
+        v-else
         class="min-h-screen bg-[#FBF9F5] dark:bg-[#141210] text-[#2C2825] dark:text-[#DCD7CE] font-serif transition-colors duration-200 selection:bg-[#EAE5DC] dark:selection:bg-[#38332B] selection:text-[#1A1816] dark:selection:text-[#F5F2EB]"
     >
         <!-- Cabeçalho Editorial com Borda Dupla Clássica -->
@@ -153,88 +318,6 @@ const handleImgError = (event: Event) => {
             class="border-b border-[#E6E1D8] dark:border-[#2D2A26] bg-[#FBF9F5] dark:bg-[#141210] transition-colors duration-200"
         >
             <div class="max-w-4xl mx-auto px-6 pt-6 pb-8 relative">
-                <!-- Barra de Ferramentas Superior: Idioma e Tema -->
-                <div class="flex items-center justify-between mb-4 font-sans text-xs">
-                    <!-- Seletor de Idioma -->
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-slate-400 dark:text-slate-500">🌐</span>
-                        <div class="relative inline-block">
-                            <select
-                                dusk="locale-select"
-                                :value="currentLocale"
-                                class="appearance-none bg-white dark:bg-[#1C1A18] border border-[#D5CEC2] dark:border-[#38342E] text-[#544E46] dark:text-[#B5ADA3] pl-2.5 pr-7 py-1.5 rounded-full font-medium focus:outline-none focus:border-[#2C2825] dark:focus:border-[#F5F2EB] shadow-2xs transition cursor-pointer"
-                                @change="handleLocaleChange"
-                            >
-                                <option
-                                    v-for="loc in availableLocales"
-                                    :key="loc.code"
-                                    :value="loc.code"
-                                >
-                                    {{ loc.flag }} {{ loc.name }}
-                                </option>
-                            </select>
-                            <span
-                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-[#756D63] dark:text-[#9C9488]"
-                            >
-                                <svg
-                                    class="w-3 h-3"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M19 9l-7 7-7-7"
-                                    />
-                                </svg>
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Botão Alternador de Tema Claro / Escuro -->
-                    <button
-                        dusk="theme-toggle"
-                        type="button"
-                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#D5CEC2] dark:border-[#38342E] bg-white dark:bg-[#1C1A18] hover:bg-[#FAF8F5] dark:hover:bg-[#25221E] text-xs text-[#544E46] dark:text-[#B5ADA3] transition shadow-2xs"
-                        :title="isDark ? t('theme.light') : t('theme.dark')"
-                        @click="toggleTheme"
-                    >
-                        <svg
-                            v-if="isDark"
-                            class="w-3.5 h-3.5 text-amber-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                            />
-                        </svg>
-                        <svg
-                            v-else
-                            class="w-3.5 h-3.5 text-slate-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                            />
-                        </svg>
-                        <span class="font-medium">{{
-                            isDark ? t('theme.light') : t('theme.dark')
-                        }}</span>
-                    </button>
-                </div>
-
                 <div class="text-center">
                     <div
                         class="inline-block border-b-2 border-t-2 border-[#2C2825] dark:border-[#DCD7CE] py-1 px-4 mb-3"
@@ -701,3 +784,45 @@ const handleImgError = (event: Event) => {
         </main>
     </div>
 </template>
+
+<style scoped>
+.theme-nav {
+    padding: 1.5rem 1.5rem 0.75rem;
+    background: #fbf9f5;
+    color: #544e46;
+}
+.theme-nav.is-dark {
+    background: #141210;
+    color: #dcd7ce;
+}
+.theme-picker {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font:
+        500 0.875rem system-ui,
+        sans-serif;
+}
+.theme-picker select,
+.theme-picker button {
+    border: 1px solid #d5cec2;
+    border-radius: 999px;
+    background: #fff;
+    color: #544e46;
+    padding: 0.35rem 0.7rem;
+}
+.is-dark .theme-picker select,
+.is-dark .theme-picker button {
+    border-color: #38342e;
+    background: #1c1a18;
+    color: #eae6df;
+}
+.theme-picker button {
+    cursor: pointer;
+}
+.theme-picker :focus-visible {
+    outline: 3px solid #d99c26;
+    outline-offset: 2px;
+}
+</style>

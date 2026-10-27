@@ -76,3 +76,27 @@ test('quick suggestion buttons prefill the form', function () {
             ->assertInputValue('@input-email', 'reader@example.com');
     });
 });
+
+test('theme preview can be cancelled or applied and survives a reload', function () {
+    $this->browse(function (Browser $browser) {
+        $browser->visit('/')
+            ->script("localStorage.removeItem('larablogs_theme')");
+        $browser->refresh()
+            ->waitFor('@design-select')
+            ->select('@design-select', 'terminal')
+            ->click('@design-preview')
+            ->waitForText('REGISTER_FEED_TARGET')
+            ->assertScript("localStorage.getItem('larablogs_theme')", null)
+            ->click('@design-cancel')
+            ->waitFor('@input-url')
+            ->select('@design-select', 'terminal')
+            ->click('@design-preview')
+            ->click('@design-apply')
+            ->assertScript("localStorage.getItem('larablogs_theme')", 'terminal')
+            ->refresh()
+            ->waitForText('REGISTER_FEED_TARGET')
+            ->select('@design-select', 'editorial')
+            ->click('@design-apply')
+            ->waitFor('@input-url');
+    });
+});

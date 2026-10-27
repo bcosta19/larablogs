@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm, router, usePage } from '@inertiajs/vue3';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import type { BlogItem, BlogPostItem, BlogStats, FlashMessages } from '@/types';
 import { useI18n, type LocaleCode } from '@/i18n';
 import TerminalTheme from '@/components/themes/TerminalTheme.vue';
@@ -13,6 +13,8 @@ interface Props {
     blogs: BlogItem[];
     recentPosts: BlogPostItem[];
     stats: BlogStats;
+    mailSettingsAvailable: boolean;
+    mailSettings: { provider: string; from_address: string } | null;
 }
 
 const props = defineProps<Props>();
@@ -35,7 +37,13 @@ const selectTheme = (event: Event) => {
 };
 
 const page = usePage();
-const flash = computed<FlashMessages>(() => (page.props as any).flash || {});
+const flash = computed<FlashMessages>(() => {
+    const messages = (page.props as any).flash || {};
+    return {
+        ...messages,
+        success: messages.success === 'mail.saved' ? t('mail.saved') : messages.success,
+    };
+});
 
 // i18n
 const { currentLocale, availableLocales, initLocale, setLocale, t, formatDate, formatRelative } =
@@ -48,6 +56,65 @@ const form = useForm({
     notify_email: '',
     title: '',
 });
+
+const mailForm = useForm({
+    provider: 'resend',
+    api_key: '',
+    from_address: props.mailSettings?.from_address ?? 'onboarding@resend.dev',
+});
+const saveMailSettings = () => {
+    mailForm.post('/settings/mail', {
+        errorBag: 'mailSettings',
+        preserveScroll: true,
+        onSuccess: () => mailForm.reset('api_key'),
+    });
+};
+
+const mailTestForm = useForm({ recipient: '', locale: currentLocale.value });
+const mailTestStatus = ref<'idle' | 'pending' | 'sent' | 'failed' | 'unknown'>('idle');
+let mailTestTimer: ReturnType<typeof setTimeout> | undefined;
+onUnmounted(() => clearTimeout(mailTestTimer));
+const sendMailTest = () => {
+    clearTimeout(mailTestTimer);
+    mailTestStatus.value = 'pending';
+    mailTestForm.locale = currentLocale.value;
+    mailTestForm.post('/settings/mail/test', {
+        errorBag: 'mailTest',
+        preserveScroll: true,
+        onError: () => {
+            mailTestStatus.value = 'idle';
+        },
+        onSuccess: (response) => {
+            const id = (response.props.flash as { mail_test_id?: string }).mail_test_id;
+            if (!id) {
+                mailTestStatus.value = 'unknown';
+                return;
+            }
+            const started = Date.now();
+            const poll = async () => {
+                try {
+                    const result = await fetch(`/settings/mail/test/${encodeURIComponent(id)}`, {
+                        headers: { Accept: 'application/json' },
+                    });
+                    if (!result.ok) throw new Error('Status unavailable');
+                    const data = await result.json();
+                    if (data.status === 'sent' || data.status === 'failed') {
+                        mailTestStatus.value = data.status;
+                        return;
+                    }
+                    if (Date.now() - started >= 60000) {
+                        mailTestStatus.value = 'unknown';
+                        return;
+                    }
+                    mailTestTimer = setTimeout(poll, 2000);
+                } catch {
+                    mailTestStatus.value = 'unknown';
+                }
+            };
+            void poll();
+        },
+    });
+};
 
 const checkingBlogId = ref<number | null>(null);
 const togglingBlogId = ref<number | null>(null);
@@ -291,6 +358,69 @@ const handleImgError = (event: Event) => {
                                         <option value="bento">Apple Bento</option>
                                     </select>
                                 </div>
+                            </details>
+                            <details v-if="mailSettingsAvailable" class="theme-submenu">
+                                <summary dusk="mail-menu">{{ t('mail.title') }}</summary>
+                                <form class="theme-picker" @submit.prevent="saveMailSettings">
+                                    <label for="mail-provider">{{ t('mail.provider') }}</label>
+                                    <select id="mail-provider" v-model="mailForm.provider">
+                                        <option value="resend">Resend</option>
+                                    </select>
+                                    <label for="mail-key">{{ t('mail.key') }}</label>
+                                    <input
+                                        id="mail-key"
+                                        v-model="mailForm.api_key"
+                                        type="password"
+                                        autocomplete="new-password"
+                                        required
+                                    />
+                                    <span v-if="mailForm.errors.api_key">{{
+                                        t(mailForm.errors.api_key)
+                                    }}</span>
+                                    <label for="mail-from">{{ t('mail.from') }}</label>
+                                    <input
+                                        id="mail-from"
+                                        v-model="mailForm.from_address"
+                                        type="email"
+                                        required
+                                        placeholder="onboarding@resend.dev"
+                                    />
+                                    <span v-if="mailForm.errors.from_address">{{
+                                        t(mailForm.errors.from_address)
+                                    }}</span>
+                                    <p>{{ t('mail.help') }}</p>
+                                    <button
+                                        dusk="mail-save"
+                                        type="submit"
+                                        :disabled="mailForm.processing"
+                                    >
+                                        {{ t('mail.save') }}
+                                    </button>
+                                </form>
+                                <form class="theme-picker" @submit.prevent="sendMailTest">
+                                    <label for="mail-recipient">{{ t('mail.recipient') }}</label>
+                                    <input
+                                        id="mail-recipient"
+                                        v-model="mailTestForm.recipient"
+                                        type="email"
+                                        required
+                                    />
+                                    <span v-if="mailTestForm.errors.recipient" role="alert">{{
+                                        t(mailTestForm.errors.recipient)
+                                    }}</span>
+                                    <p v-if="mailTestStatus !== 'idle'" role="status">
+                                        {{ t(`mail.status_${mailTestStatus}`) }}
+                                    </p>
+                                    <button
+                                        dusk="mail-test"
+                                        type="submit"
+                                        :disabled="
+                                            mailTestForm.processing || mailTestStatus === 'pending'
+                                        "
+                                    >
+                                        {{ t('mail.send_test') }}
+                                    </button>
+                                </form>
                             </details>
                         </div>
                     </details>
@@ -866,6 +996,7 @@ const handleImgError = (event: Event) => {
     padding: 0.6rem 0.35rem 0.35rem;
 }
 .theme-picker select,
+.theme-picker input,
 .theme-picker button {
     border: 1px solid #d5cec2;
     border-radius: 999px;
@@ -874,6 +1005,7 @@ const handleImgError = (event: Event) => {
     padding: 0.35rem 0.7rem;
 }
 .is-dark .theme-picker select,
+.is-dark .theme-picker input,
 .is-dark .theme-picker button {
     border-color: #38342e;
     background: #1c1a18;

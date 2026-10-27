@@ -98,3 +98,26 @@ test('theme selection applies immediately and survives a reload', function () {
             ->waitFor('@input-url');
     });
 });
+
+test('local user can configure email without exposing the key again', function () {
+    $this->browse(function (Browser $browser) {
+        $browser->visit('/')
+            ->waitFor('@design-menu')
+            ->select('@locale-select', 'en')
+            ->click('@design-menu')
+            ->click('@mail-menu')
+            ->type('#mail-recipient', 'recipient@example.com')
+            ->click('@mail-test')
+            ->waitForText('Save your email settings before sending a test.')
+            ->type('#mail-key', 'browser-test-key')
+            ->type('#mail-from', 'reader@example.com')
+            ->click('@mail-save')
+            ->waitForText('Email settings saved.')
+            ->refresh()
+            ->waitFor('@design-menu')
+            ->click('@design-menu')
+            ->click('@mail-menu')
+            ->assertInputValue('#mail-from', 'reader@example.com')
+            ->assertInputValue('#mail-key', '');
+    });
+});

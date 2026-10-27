@@ -97,6 +97,12 @@ Abra no navegador em: **`http://localhost:8000`**
 
 ---
 
+## Configuração de e-mail
+
+No menu de navegação, abra E-mail e informe a chave de API do Resend e o endereço remetente. Por segurança, a configuração aceita somente acesso direto por localhost; não funciona remotamente nem através de proxy reverso. Guarde a `APP_KEY` do Laravel: ela criptografa a chave do Resend no banco, e alterá-la impede a leitura dessa chave. Use uma chave do Resend restrita a envio.
+
+Para envio geral, use um remetente de domínio verificado. `onboarding@resend.dev` é para teste e só envia ao e-mail associado à conta Resend. Após salvar, use o formulário de teste com seu endereço. Ele coloca o envio na fila; mantenha `php artisan queue:work database` em execução para processá-la. O job tenta enviar até três vezes; consulte `php artisan queue:failed` em caso de falha. A inclusão na fila não comprova a entrega. Mantenha o agendador abaixo ativo para verificar os feeds. Falhas das notificações de artigos são registradas e não são repetidas automaticamente.
+
 ## Verificação em segundo plano
 
 O comando Artisan responsável por varrer os feeds cadastrados e disparar os alertas é o:

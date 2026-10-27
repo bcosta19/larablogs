@@ -259,8 +259,7 @@ const formatRelative = (dateStr: string | null): string => {
                                 :class="blog.is_active ? 'bg-emerald-400' : 'bg-slate-600'"
                             ></span>
                             <a
-                                :href="blog.url"
-                                target="_blank"
+                                :href="`/blogs/${blog.id}`"
                                 class="text-white font-bold hover:text-cyan-400 underline decoration-[#1E293B]"
                             >
                                 {{ blog.title }}
@@ -282,8 +281,7 @@ const formatRelative = (dateStr: string | null): string => {
                         >
                             &gt; latest:
                             <a
-                                :href="blog.latest_post.url"
-                                target="_blank"
+                                :href="`/posts/${blog.latest_post.id}/read`"
                                 class="text-cyan-300 hover:underline"
                                 >{{ blog.latest_post.title }}</a
                             >
@@ -326,13 +324,12 @@ const formatRelative = (dateStr: string | null): string => {
                         <span v-if="post.blog" class="text-cyan-400 mr-2"
                             >[{{ post.blog.title }}]</span
                         >
-                        <a :href="post.url" target="_blank" class="text-white hover:underline">{{
+                        <a :href="`/posts/${post.id}/read`" class="text-white hover:underline">{{
                             post.title
                         }}</a>
                     </div>
                     <a
-                        :href="post.url"
-                        target="_blank"
+                        :href="`/posts/${post.id}/read`"
                         class="text-slate-500 hover:text-white shrink-0"
                         >[OPEN]</a
                     >

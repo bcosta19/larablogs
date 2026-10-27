@@ -9,12 +9,13 @@ import NeoBrutalismTheme from '@/components/themes/NeoBrutalismTheme.vue';
 import BentoTheme from '@/components/themes/BentoTheme.vue';
 
 interface Props {
+    locale: LocaleCode;
     blogs: BlogItem[];
     recentPosts: BlogPostItem[];
     stats: BlogStats;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const themes = {
     editorial: null,
@@ -38,7 +39,9 @@ const flash = computed<FlashMessages>(() => (page.props as any).flash || {});
 
 // i18n
 const { currentLocale, availableLocales, initLocale, setLocale, t, formatDate, formatRelative } =
-    useI18n();
+    useI18n(props.locale);
+
+if (typeof window !== 'undefined') initLocale();
 
 const form = useForm({
     url: '',
@@ -55,7 +58,6 @@ const activeTab = ref<'blogs' | 'posts'>('blogs');
 const isDark = ref(true);
 
 onMounted(() => {
-    initLocale();
     const saved = localStorage.getItem('larablogs_theme');
     if (saved && Object.hasOwn(themes, saved)) {
         selectedTheme.value = saved as ThemeKey;
@@ -179,8 +181,8 @@ const handleImgError = (event: Event) => {
                     <span class="text-slate-400 dark:text-slate-500">🌐</span>
                     <div class="relative inline-block">
                         <select
+                            v-model="currentLocale"
                             dusk="locale-select"
-                            :value="currentLocale"
                             class="appearance-none bg-white dark:bg-[#1C1A18] border border-[#D5CEC2] dark:border-[#38342E] text-[#544E46] dark:text-[#B5ADA3] pl-2.5 pr-7 py-1.5 rounded-full font-medium focus:outline-none focus:border-[#2C2825] dark:focus:border-[#F5F2EB] shadow-2xs transition cursor-pointer"
                             @change="handleLocaleChange"
                         >

@@ -28,6 +28,8 @@ export const translations = {
             stats_archived: '{count} artigos arquivados',
         },
         theme: {
+            name: 'Tema',
+            choose: 'Escolher tema',
             light: 'Tema Claro',
             dark: 'Tema Escuro',
         },
@@ -95,6 +97,8 @@ export const translations = {
             stats_archived: '{count} archived articles',
         },
         theme: {
+            name: 'Theme',
+            choose: 'Choose theme',
             light: 'Light Mode',
             dark: 'Dark Mode',
         },
@@ -161,6 +165,8 @@ export const translations = {
             stats_archived: '{count} artículos archivados',
         },
         theme: {
+            name: 'Tema',
+            choose: 'Elegir tema',
             light: 'Modo Claro',
             dark: 'Modo Oscuro',
         },
@@ -228,6 +234,8 @@ export const translations = {
             stats_archived: '{count} articles archivés',
         },
         theme: {
+            name: 'Thème',
+            choose: 'Choisir un thème',
             light: 'Mode Clair',
             dark: 'Mode Sombre',
         },
@@ -295,6 +303,8 @@ export const translations = {
             stats_archived: '{count} archivierte Artikel',
         },
         theme: {
+            name: 'Design',
+            choose: 'Design wählen',
             light: 'Heller Modus',
             dark: 'Dunkler Modus',
         },

@@ -3,6 +3,10 @@ import { Head, useForm, router, usePage } from '@inertiajs/vue3';
 import { ref, computed, onMounted } from 'vue';
 import type { BlogItem, BlogPostItem, BlogStats, FlashMessages } from '@/types';
 import { useI18n, type LocaleCode } from '@/i18n';
+import TerminalTheme from '@/components/themes/TerminalTheme.vue';
+import LinearTheme from '@/components/themes/LinearTheme.vue';
+import NeoBrutalismTheme from '@/components/themes/NeoBrutalismTheme.vue';
+import BentoTheme from '@/components/themes/BentoTheme.vue';
 
 interface Props {
     blogs: BlogItem[];
@@ -11,6 +15,23 @@ interface Props {
 }
 
 defineProps<Props>();
+
+const themes = {
+    editorial: null,
+    linear: LinearTheme,
+    terminal: TerminalTheme,
+    neobrutalism: NeoBrutalismTheme,
+    bento: BentoTheme,
+} as const;
+type ThemeKey = keyof typeof themes;
+const selectedTheme = ref<ThemeKey>('editorial');
+const selectTheme = (event: Event) => {
+    const theme = (event.target as HTMLSelectElement).value;
+    if (Object.hasOwn(themes, theme)) {
+        selectedTheme.value = theme as ThemeKey;
+        localStorage.setItem('larablogs_theme', theme);
+    }
+};
 
 const page = usePage();
 const flash = computed<FlashMessages>(() => (page.props as any).flash || {});
@@ -35,6 +56,10 @@ const isDark = ref(true);
 
 onMounted(() => {
     initLocale();
+    const saved = localStorage.getItem('larablogs_theme');
+    if (saved && Object.hasOwn(themes, saved)) {
+        selectedTheme.value = saved as ThemeKey;
+    }
 
     const savedTheme = localStorage.getItem('larablogs_theme_mode');
     if (savedTheme) {
@@ -145,54 +170,49 @@ const handleImgError = (event: Event) => {
 <template>
     <Head :title="t('header.title') + ' - ' + t('header.badge')" />
 
-    <div
-        class="min-h-screen bg-[#FBF9F5] dark:bg-[#141210] text-[#2C2825] dark:text-[#DCD7CE] font-serif transition-colors duration-200 selection:bg-[#EAE5DC] dark:selection:bg-[#38332B] selection:text-[#1A1816] dark:selection:text-[#F5F2EB]"
-    >
-        <!-- Cabeçalho Editorial com Borda Dupla Clássica -->
-        <header
-            class="border-b border-[#E6E1D8] dark:border-[#2D2A26] bg-[#FBF9F5] dark:bg-[#141210] transition-colors duration-200"
-        >
-            <div class="max-w-4xl mx-auto px-6 pt-6 pb-8 relative">
-                <!-- Barra de Ferramentas Superior: Idioma e Tema -->
-                <div class="flex items-center justify-between mb-4 font-sans text-xs">
-                    <!-- Seletor de Idioma -->
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-slate-400 dark:text-slate-500">🌐</span>
-                        <div class="relative inline-block">
-                            <select
-                                dusk="locale-select"
-                                :value="currentLocale"
-                                class="appearance-none bg-white dark:bg-[#1C1A18] border border-[#D5CEC2] dark:border-[#38342E] text-[#544E46] dark:text-[#B5ADA3] pl-2.5 pr-7 py-1.5 rounded-full font-medium focus:outline-none focus:border-[#2C2825] dark:focus:border-[#F5F2EB] shadow-2xs transition cursor-pointer"
-                                @change="handleLocaleChange"
+    <nav :class="{ 'is-dark': isDark }" class="theme-nav" :aria-label="t('theme.choose')">
+        <div class="max-w-4xl mx-auto">
+            <!-- Barra de Ferramentas Superior: Idioma e Tema -->
+            <div class="flex flex-wrap items-center justify-between gap-3 font-sans text-xs">
+                <!-- Seletor de Idioma -->
+                <div class="flex items-center gap-1.5">
+                    <span class="text-slate-400 dark:text-slate-500">🌐</span>
+                    <div class="relative inline-block">
+                        <select
+                            dusk="locale-select"
+                            :value="currentLocale"
+                            class="appearance-none bg-white dark:bg-[#1C1A18] border border-[#D5CEC2] dark:border-[#38342E] text-[#544E46] dark:text-[#B5ADA3] pl-2.5 pr-7 py-1.5 rounded-full font-medium focus:outline-none focus:border-[#2C2825] dark:focus:border-[#F5F2EB] shadow-2xs transition cursor-pointer"
+                            @change="handleLocaleChange"
+                        >
+                            <option
+                                v-for="loc in availableLocales"
+                                :key="loc.code"
+                                :value="loc.code"
                             >
-                                <option
-                                    v-for="loc in availableLocales"
-                                    :key="loc.code"
-                                    :value="loc.code"
-                                >
-                                    {{ loc.flag }} {{ loc.name }}
-                                </option>
-                            </select>
-                            <span
-                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-[#756D63] dark:text-[#9C9488]"
+                                {{ loc.flag }} {{ loc.name }}
+                            </option>
+                        </select>
+                        <span
+                            class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-[#756D63] dark:text-[#9C9488]"
+                        >
+                            <svg
+                                class="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
                             >
-                                <svg
-                                    class="w-3 h-3"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M19 9l-7 7-7-7"
-                                    />
-                                </svg>
-                            </span>
-                        </div>
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M19 9l-7 7-7-7"
+                                />
+                            </svg>
+                        </span>
                     </div>
+                </div>
 
+                <div class="nav-actions">
                     <!-- Botão Alternador de Tema Claro / Escuro -->
                     <button
                         dusk="theme-toggle"
@@ -233,8 +253,76 @@ const handleImgError = (event: Event) => {
                             isDark ? t('theme.light') : t('theme.dark')
                         }}</span>
                     </button>
+                    <details class="theme-menu">
+                        <summary
+                            dusk="design-menu"
+                            :aria-label="t('theme.choose')"
+                            :title="t('theme.choose')"
+                        >
+                            <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                aria-hidden="true"
+                            >
+                                <path d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </summary>
+                        <div class="theme-panel">
+                            <details class="theme-submenu">
+                                <summary dusk="design-submenu">{{ t('theme.name') }}</summary>
+                                <div class="theme-picker">
+                                    <label for="design-theme">{{ t('theme.choose') }}</label>
+                                    <select
+                                        id="design-theme"
+                                        dusk="design-select"
+                                        :value="selectedTheme"
+                                        @change="selectTheme"
+                                    >
+                                        <option value="editorial">Editorial</option>
+                                        <option value="linear">Linear / Raycast</option>
+                                        <option value="terminal">Hacker TUI</option>
+                                        <option value="neobrutalism">Neo-Brutalism</option>
+                                        <option value="bento">Apple Bento</option>
+                                    </select>
+                                </div>
+                            </details>
+                        </div>
+                    </details>
                 </div>
-
+            </div>
+        </div>
+    </nav>
+    <component
+        :is="themes[selectedTheme]"
+        v-if="selectedTheme !== 'editorial'"
+        :blogs="blogs"
+        :recent-posts="recentPosts"
+        :stats="stats"
+        :flash="flash"
+        :form="form"
+        :checking-blog-id="checkingBlogId"
+        :toggling-blog-id="togglingBlogId"
+        :deleting-blog-id="deletingBlogId"
+        @update-form="(field, value) => (form[field] = value)"
+        @submit="submitBlog"
+        @prefill="prefill"
+        @check-now="checkNow"
+        @toggle="toggleBlog"
+        @delete="deleteBlog"
+    />
+    <div
+        v-else
+        class="min-h-screen bg-[#FBF9F5] dark:bg-[#141210] text-[#2C2825] dark:text-[#DCD7CE] font-serif transition-colors duration-200 selection:bg-[#EAE5DC] dark:selection:bg-[#38332B] selection:text-[#1A1816] dark:selection:text-[#F5F2EB]"
+    >
+        <!-- Cabeçalho Editorial com Borda Dupla Clássica -->
+        <header
+            class="border-b border-[#E6E1D8] dark:border-[#2D2A26] bg-[#FBF9F5] dark:bg-[#141210] transition-colors duration-200"
+        >
+            <div class="max-w-4xl mx-auto px-6 pt-6 pb-8 relative">
                 <div class="text-center">
                     <div
                         class="inline-block border-b-2 border-t-2 border-[#2C2825] dark:border-[#DCD7CE] py-1 px-4 mb-3"
@@ -701,3 +789,99 @@ const handleImgError = (event: Event) => {
         </main>
     </div>
 </template>
+
+<style scoped>
+.theme-nav {
+    padding: 1.5rem 1.5rem 0.75rem;
+    background: #fbf9f5;
+    color: #544e46;
+}
+.theme-nav.is-dark {
+    background: #141210;
+    color: #dcd7ce;
+}
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.theme-menu {
+    position: relative;
+}
+.theme-menu > summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    cursor: pointer;
+    border: 1px solid #d5cec2;
+    border-radius: 999px;
+    background: #fff;
+    color: #544e46;
+    list-style: none;
+}
+.theme-menu > summary::-webkit-details-marker {
+    display: none;
+}
+.is-dark .theme-menu > summary {
+    border-color: #38342e;
+    background: #1c1a18;
+    color: #eae6df;
+}
+.theme-menu summary:focus-visible {
+    outline: 3px solid #d99c26;
+    outline-offset: 2px;
+}
+.theme-panel {
+    position: absolute;
+    z-index: 20;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    width: min(18rem, calc(100vw - 3rem));
+    padding: 0.75rem;
+    border: 1px solid #d5cec2;
+    border-radius: 0.6rem;
+    background: #fbf9f5;
+    box-shadow: 0 8px 24px #0003;
+    font:
+        500 0.875rem system-ui,
+        sans-serif;
+}
+.is-dark .theme-panel {
+    background: #1c1a18;
+    border-color: #38342e;
+}
+.theme-submenu > summary {
+    cursor: pointer;
+    padding: 0.35rem;
+}
+.theme-picker {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.6rem 0.35rem 0.35rem;
+}
+.theme-picker select,
+.theme-picker button {
+    border: 1px solid #d5cec2;
+    border-radius: 999px;
+    background: #fff;
+    color: #544e46;
+    padding: 0.35rem 0.7rem;
+}
+.is-dark .theme-picker select,
+.is-dark .theme-picker button {
+    border-color: #38342e;
+    background: #1c1a18;
+    color: #eae6df;
+}
+.theme-picker button {
+    cursor: pointer;
+}
+.theme-picker :focus-visible {
+    outline: 3px solid #d99c26;
+    outline-offset: 2px;
+}
+</style>

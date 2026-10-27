@@ -25,7 +25,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
-        if ($this->app->environment('testing') && env('LARABLOGS_DUSK')) {
+        if ($this->app->environment('testing') && config('app.dusk_test_mode')) {
             Vite::useHotFile(storage_path('framework/dusk.hot'));
             config(['inertia.ssr.enabled' => false]);
         }

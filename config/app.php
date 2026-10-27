@@ -2,6 +2,8 @@
 
 return [
 
+    'dusk_test_mode' => env('LARABLOGS_DUSK', false),
+
     /*
     |--------------------------------------------------------------------------
     | Application Name

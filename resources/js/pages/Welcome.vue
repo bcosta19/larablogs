@@ -25,13 +25,12 @@ const themes = {
 } as const;
 type ThemeKey = keyof typeof themes;
 const selectedTheme = ref<ThemeKey>('editorial');
-const previewTheme = ref<ThemeKey | null>(null);
-const displayedTheme = computed(() => previewTheme.value ?? selectedTheme.value);
-const candidateTheme = ref<ThemeKey>('editorial');
-const applySelectedTheme = () => {
-    selectedTheme.value = candidateTheme.value;
-    previewTheme.value = null;
-    localStorage.setItem('larablogs_theme', selectedTheme.value);
+const selectTheme = (event: Event) => {
+    const theme = (event.target as HTMLSelectElement).value;
+    if (Object.hasOwn(themes, theme)) {
+        selectedTheme.value = theme as ThemeKey;
+        localStorage.setItem('larablogs_theme', theme);
+    }
 };
 
 const page = usePage();
@@ -60,7 +59,6 @@ onMounted(() => {
     const saved = localStorage.getItem('larablogs_theme');
     if (saved && Object.hasOwn(themes, saved)) {
         selectedTheme.value = saved as ThemeKey;
-        candidateTheme.value = selectedTheme.value;
     }
 
     const savedTheme = localStorage.getItem('larablogs_theme_mode');
@@ -214,86 +212,93 @@ const handleImgError = (event: Event) => {
                     </div>
                 </div>
 
-                <div class="theme-picker" role="region" :aria-label="t('theme.choose')">
-                    <label for="design-theme">{{ t('theme.choose') }}</label>
-                    <select id="design-theme" v-model="candidateTheme" dusk="design-select">
-                        <option value="editorial">Editorial</option>
-                        <option value="linear">Linear / Raycast</option>
-                        <option value="terminal">Hacker TUI</option>
-                        <option value="neobrutalism">Neo-Brutalism</option>
-                        <option value="bento">Apple Bento</option>
-                    </select>
+                <div class="nav-actions">
+                    <!-- Botão Alternador de Tema Claro / Escuro -->
                     <button
+                        dusk="theme-toggle"
                         type="button"
-                        dusk="design-preview"
-                        @click="previewTheme = candidateTheme"
+                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#D5CEC2] dark:border-[#38342E] bg-white dark:bg-[#1C1A18] hover:bg-[#FAF8F5] dark:hover:bg-[#25221E] text-xs text-[#544E46] dark:text-[#B5ADA3] transition shadow-2xs"
+                        :title="isDark ? t('theme.light') : t('theme.dark')"
+                        @click="toggleTheme"
                     >
-                        {{ t('theme.preview') }}
+                        <svg
+                            v-if="isDark"
+                            class="w-3.5 h-3.5 text-amber-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                            />
+                        </svg>
+                        <svg
+                            v-else
+                            class="w-3.5 h-3.5 text-slate-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                            />
+                        </svg>
+                        <span class="font-medium">{{
+                            isDark ? t('theme.light') : t('theme.dark')
+                        }}</span>
                     </button>
-                    <button type="button" dusk="design-apply" @click="applySelectedTheme">
-                        {{ t('theme.apply') }}
-                    </button>
-                    <button
-                        v-if="previewTheme !== null"
-                        type="button"
-                        dusk="design-cancel"
-                        @click="
-                            previewTheme = null;
-                            candidateTheme = selectedTheme;
-                        "
-                    >
-                        {{ t('theme.cancel') }}
-                    </button>
-                    <span v-if="previewTheme !== null" role="status">{{
-                        t('theme.previewing')
-                    }}</span>
+                    <details class="theme-menu">
+                        <summary
+                            dusk="design-menu"
+                            :aria-label="t('theme.choose')"
+                            :title="t('theme.choose')"
+                        >
+                            <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                aria-hidden="true"
+                            >
+                                <path d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </summary>
+                        <div class="theme-panel">
+                            <details class="theme-submenu">
+                                <summary dusk="design-submenu">{{ t('theme.name') }}</summary>
+                                <div class="theme-picker">
+                                    <label for="design-theme">{{ t('theme.choose') }}</label>
+                                    <select
+                                        id="design-theme"
+                                        dusk="design-select"
+                                        :value="selectedTheme"
+                                        @change="selectTheme"
+                                    >
+                                        <option value="editorial">Editorial</option>
+                                        <option value="linear">Linear / Raycast</option>
+                                        <option value="terminal">Hacker TUI</option>
+                                        <option value="neobrutalism">Neo-Brutalism</option>
+                                        <option value="bento">Apple Bento</option>
+                                    </select>
+                                </div>
+                            </details>
+                        </div>
+                    </details>
                 </div>
-                <!-- Botão Alternador de Tema Claro / Escuro -->
-                <button
-                    dusk="theme-toggle"
-                    type="button"
-                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#D5CEC2] dark:border-[#38342E] bg-white dark:bg-[#1C1A18] hover:bg-[#FAF8F5] dark:hover:bg-[#25221E] text-xs text-[#544E46] dark:text-[#B5ADA3] transition shadow-2xs"
-                    :title="isDark ? t('theme.light') : t('theme.dark')"
-                    @click="toggleTheme"
-                >
-                    <svg
-                        v-if="isDark"
-                        class="w-3.5 h-3.5 text-amber-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                        />
-                    </svg>
-                    <svg
-                        v-else
-                        class="w-3.5 h-3.5 text-slate-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                        />
-                    </svg>
-                    <span class="font-medium">{{
-                        isDark ? t('theme.light') : t('theme.dark')
-                    }}</span>
-                </button>
             </div>
         </div>
     </nav>
     <component
-        :is="themes[displayedTheme]"
-        v-if="displayedTheme !== 'editorial'"
+        :is="themes[selectedTheme]"
+        v-if="selectedTheme !== 'editorial'"
         :blogs="blogs"
         :recent-posts="recentPosts"
         :stats="stats"
@@ -795,14 +800,68 @@ const handleImgError = (event: Event) => {
     background: #141210;
     color: #dcd7ce;
 }
-.theme-picker {
+.nav-actions {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
     gap: 0.5rem;
+}
+.theme-menu {
+    position: relative;
+}
+.theme-menu > summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    cursor: pointer;
+    border: 1px solid #d5cec2;
+    border-radius: 999px;
+    background: #fff;
+    color: #544e46;
+    list-style: none;
+}
+.theme-menu > summary::-webkit-details-marker {
+    display: none;
+}
+.is-dark .theme-menu > summary {
+    border-color: #38342e;
+    background: #1c1a18;
+    color: #eae6df;
+}
+.theme-menu summary:focus-visible {
+    outline: 3px solid #d99c26;
+    outline-offset: 2px;
+}
+.theme-panel {
+    position: absolute;
+    z-index: 20;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    width: min(18rem, calc(100vw - 3rem));
+    padding: 0.75rem;
+    border: 1px solid #d5cec2;
+    border-radius: 0.6rem;
+    background: #fbf9f5;
+    box-shadow: 0 8px 24px #0003;
     font:
         500 0.875rem system-ui,
         sans-serif;
+}
+.is-dark .theme-panel {
+    background: #1c1a18;
+    border-color: #38342e;
+}
+.theme-submenu > summary {
+    cursor: pointer;
+    padding: 0.35rem;
+}
+.theme-picker {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.6rem 0.35rem 0.35rem;
 }
 .theme-picker select,
 .theme-picker button {

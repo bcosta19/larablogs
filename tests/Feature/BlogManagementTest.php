@@ -2,10 +2,15 @@
 
 use App\Models\Blog;
 use App\Models\BlogPost;
+use App\Models\User;
 use App\Notifications\NewBlogPostNotification;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->create(['is_owner' => true]));
+});
 
 $sampleRss = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>

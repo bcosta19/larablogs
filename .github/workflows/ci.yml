@@ -80,13 +80,5 @@ jobs:
       - name: Prepare ChromeDriver for Dusk
         run: php artisan dusk:chrome-driver --detect
 
-      - name: Start Laravel Server & Run Browser Tests (Dusk)
-        run: |
-          php artisan serve --port=8000 &
-          for i in {1..30}; do
-            if curl -s http://localhost:8000 > /dev/null 2>&1; then
-              break
-            fi
-            sleep 0.5
-          done
-          php artisan dusk
+      - name: Run isolated Browser Tests (Dusk)
+        run: composer run dusk

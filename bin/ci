@@ -67,20 +67,7 @@ success "All Pest tests passed"
 
 # 8. Frontend Browser Tests (Laravel Dusk)
 step "[8/8] Browser Tests: Laravel Dusk"
-if ! curl -s -o /dev/null -w "%{http_code}" http://localhost:8000 | grep -q "200\|302"; then
-    echo "Starting local server on port 8000 for Dusk tests..."
-    php artisan serve --port=8000 > /dev/null 2>&1 &
-    SERVER_PID=$!
-    # Wait for server to respond
-    for _ in {1..30}; do
-        if curl -s http://localhost:8000 > /dev/null 2>&1; then
-            break
-        fi
-        sleep 0.2
-    done
-fi
-
-php artisan dusk
+bash bin/dusk
 success "All Laravel Dusk browser tests passed"
 
 echo -e "\n${BOLD}${GREEN}========================================"

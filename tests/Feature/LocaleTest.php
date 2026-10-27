@@ -1,6 +1,11 @@
 <?php
 
+use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->create(['is_owner' => true]));
+});
 
 test('saved language takes precedence over browser language in the initial response', function () {
     $this->withUnencryptedCookie('larablogs_locale', 'en')

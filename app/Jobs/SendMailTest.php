@@ -18,12 +18,20 @@ class SendMailTest implements ShouldBeEncrypted, ShouldQueue
 
     public int $backoff = 60;
 
-    public function __construct(public string $recipient, public string $resultId, public string $locale = 'en') {}
+    public string $locale = 'en';
+
+    public ?string $resultId = null;
+
+    public function __construct(public string $recipient, string $resultId, string $locale = 'en')
+    {
+        $this->resultId = $resultId;
+        $this->locale = $locale;
+    }
 
     public function handle(MailSettings $settings): void
     {
         try {
-            $settings->sendTest($this->recipient, $this->locale ?? 'en');
+            $settings->sendTest($this->recipient, $this->locale);
             if (isset($this->resultId)) {
                 DB::table('mail_test_results')->where('id', $this->resultId)->update(['status' => 'sent', 'updated_at' => now()]);
             }

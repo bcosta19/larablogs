@@ -35,8 +35,17 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $supported = ['pt-BR', 'en', 'es', 'fr', 'de'];
+        $saved = $request->cookie('larablogs_locale');
+        $locale = in_array($saved, $supported, true)
+            ? $saved
+            : ($request->getPreferredLanguage($supported) ?? 'en');
+        $locale = str_replace('_', '-', $locale);
+        app()->setLocale($locale);
+
         return [
             ...parent::share($request),
+            'locale' => $locale,
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),

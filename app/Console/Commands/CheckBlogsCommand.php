@@ -57,7 +57,7 @@ class CheckBlogsCommand extends Command
                 $totalNew += $newCount;
 
                 if ($newCount > 0) {
-                    $this->info("  ✓ {$newCount} novo(s) artigo(s) encontrado(s) e notificação enviada para {$blog->notify_email}!");
+                    $this->info("  ✓ {$newCount} novo(s) artigo(s) encontrado(s); envio solicitado para {$blog->notify_email}.");
                 } else {
                     $this->comment('  • Nenhum artigo novo. Feed em dia.');
                 }

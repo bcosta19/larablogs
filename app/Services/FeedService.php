@@ -343,6 +343,7 @@ class FeedService
 
                     if ($notify && $blog->is_active && ! empty($blog->notify_email)) {
                         try {
+                            app(MailSettings::class)->configure();
                             Notification::route('mail', $blog->notify_email)
                                 ->notify(new NewBlogPostNotification($blog, $newPost));
 
@@ -352,7 +353,7 @@ class FeedService
                                 'post' => $newPost->title,
                             ]);
                         } catch (Exception $e) {
-                            Log::error('Erro ao enviar notificação de novo post: '.$e->getMessage(), [
+                            Log::error('Erro ao enviar notificação de novo post.', [
                                 'blog_id' => $blog->id,
                                 'post_id' => $newPost->id,
                             ]);

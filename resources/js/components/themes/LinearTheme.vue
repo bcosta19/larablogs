@@ -284,8 +284,7 @@ const formatDate = (dateStr: string | null): string => {
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
                                 <a
-                                    :href="blog.url"
-                                    target="_blank"
+                                    :href="`/blogs/${blog.id}`"
                                     class="text-sm font-semibold text-white hover:text-indigo-400 transition truncate block"
                                 >
                                     {{ blog.title }}
@@ -315,8 +314,7 @@ const formatDate = (dateStr: string | null): string => {
                                 >Último artigo detectado:</span
                             >
                             <a
-                                :href="blog.latest_post.url"
-                                target="_blank"
+                                :href="`/posts/${blog.latest_post.id}/read`"
                                 class="text-slate-200 hover:text-indigo-300 transition line-clamp-1 mt-0.5"
                             >
                                 {{ blog.latest_post.title }}
@@ -375,16 +373,14 @@ const formatDate = (dateStr: string | null): string => {
                             <span class="text-slate-500">{{ formatDate(post.published_at) }}</span>
                         </div>
                         <a
-                            :href="post.url"
-                            target="_blank"
+                            :href="`/posts/${post.id}/read`"
                             class="text-white font-medium hover:text-indigo-300 transition truncate block"
                         >
                             {{ post.title }}
                         </a>
                     </div>
                     <a
-                        :href="post.url"
-                        target="_blank"
+                        :href="`/posts/${post.id}/read`"
                         class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-xs transition shrink-0"
                     >
                         Abrir

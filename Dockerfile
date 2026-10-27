@@ -19,7 +19,7 @@ COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 COPY . .
-ENV APP_ENV=production APP_DEBUG=false
+ENV APP_ENV=production APP_DEBUG=false VITE_APP_NAME=Larablogs
 RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader \
     && npm ci \
     && npm run build \

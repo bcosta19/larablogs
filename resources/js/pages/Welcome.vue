@@ -717,8 +717,7 @@ const handleImgError = (event: Event) => {
                             <div class="min-w-0 flex-1">
                                 <div class="flex items-center gap-2.5 flex-wrap">
                                     <a
-                                        :href="blog.url"
-                                        target="_blank"
+                                        :href="`/blogs/${blog.id}`"
                                         rel="noopener noreferrer"
                                         class="text-xl font-normal text-[#1A1816] dark:text-[#F5F2EB] hover:underline truncate"
                                     >
@@ -803,8 +802,7 @@ const handleImgError = (event: Event) => {
                             {{ t('blogs.latest_article') }}
                         </span>
                         <a
-                            :href="blog.latest_post.url"
-                            target="_blank"
+                            :href="`/posts/${blog.latest_post.id}/read`"
                             rel="noopener noreferrer"
                             class="block font-serif text-sm text-[#1A1816] dark:text-[#F5F2EB] hover:underline mt-0.5"
                         >
@@ -884,8 +882,7 @@ const handleImgError = (event: Event) => {
                             </div>
 
                             <a
-                                :href="post.url"
-                                target="_blank"
+                                :href="`/posts/${post.id}/read`"
                                 rel="noopener noreferrer"
                                 class="block font-serif text-base text-[#1A1816] dark:text-[#F5F2EB] hover:underline"
                             >
@@ -895,8 +892,7 @@ const handleImgError = (event: Event) => {
                     </div>
 
                     <a
-                        :href="post.url"
-                        target="_blank"
+                        :href="`/posts/${post.id}/read`"
                         rel="noopener noreferrer"
                         class="font-sans text-xs px-3 py-1.5 border border-[#D5CEC2] dark:border-[#38342E] bg-[#FAF8F5] dark:bg-[#141210] hover:bg-white dark:hover:bg-[#25221E] text-[#2C2825] dark:text-[#EAE6DF] shrink-0 transition"
                     >

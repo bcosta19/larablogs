@@ -10,6 +10,15 @@
 
         <script>
             (function() {
+                try {
+                    const locale = localStorage.getItem('larablogs_locale');
+                    if (['pt-BR', 'en', 'es', 'fr', 'de'].includes(locale) && document.documentElement.lang !== locale) {
+                        document.cookie = 'larablogs_locale=' + encodeURIComponent(locale) + '; Path=/; Max-Age=31536000; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
+                        if (document.cookie.split('; ').includes('larablogs_locale=' + encodeURIComponent(locale))) {
+                            location.reload();
+                        }
+                    }
+                } catch (_) {}
                 const saved = localStorage.getItem('larablogs_theme_mode');
                 if (saved === 'light') {
                     document.documentElement.classList.remove('dark');

@@ -362,28 +362,18 @@ export const translations = {
     },
 };
 
-const currentLocale = ref<LocaleCode>('pt-BR');
-
-export function useI18n() {
+export function useI18n(initialLocale: LocaleCode = 'en') {
+    const currentLocale = ref<LocaleCode>(initialLocale);
     const initLocale = () => {
-        const saved = localStorage.getItem('larablogs_locale') as LocaleCode | null;
-        if (saved && saved in translations) {
-            currentLocale.value = saved;
-        } else {
-            // Tenta detectar o idioma do navegador
-            const navLang = navigator.language || '';
-            if (navLang.startsWith('en')) currentLocale.value = 'en';
-            else if (navLang.startsWith('es')) currentLocale.value = 'es';
-            else if (navLang.startsWith('fr')) currentLocale.value = 'fr';
-            else if (navLang.startsWith('de')) currentLocale.value = 'de';
-            else currentLocale.value = 'pt-BR';
-        }
+        document.documentElement.lang = currentLocale.value;
     };
 
     const setLocale = (code: LocaleCode) => {
         if (code in translations) {
             currentLocale.value = code;
             localStorage.setItem('larablogs_locale', code);
+            document.cookie = `larablogs_locale=${encodeURIComponent(code)}; Path=/; Max-Age=31536000; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`;
+            document.documentElement.lang = code;
         }
     };
 

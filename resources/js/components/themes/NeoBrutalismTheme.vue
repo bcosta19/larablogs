@@ -262,8 +262,7 @@ const formatDate = (dateStr: string | null): string => {
                         <div class="flex items-start justify-between gap-2">
                             <div>
                                 <a
-                                    :href="blog.url"
-                                    target="_blank"
+                                    :href="`/blogs/${blog.id}`"
                                     class="text-base font-black hover:underline block"
                                 >
                                     {{ blog.title }}
@@ -288,8 +287,7 @@ const formatDate = (dateStr: string | null): string => {
                         >
                             <span class="text-[10px] font-black uppercase block">Último post:</span>
                             <a
-                                :href="blog.latest_post.url"
-                                target="_blank"
+                                :href="`/posts/${blog.latest_post.id}/read`"
                                 class="font-bold underline line-clamp-1"
                             >
                                 {{ blog.latest_post.title }}
@@ -349,16 +347,14 @@ const formatDate = (dateStr: string | null): string => {
                             }}</span>
                         </div>
                         <a
-                            :href="post.url"
-                            target="_blank"
+                            :href="`/posts/${post.id}/read`"
                             class="font-black text-sm hover:underline block"
                         >
                             {{ post.title }}
                         </a>
                     </div>
                     <a
-                        :href="post.url"
-                        target="_blank"
+                        :href="`/posts/${post.id}/read`"
                         class="border-2 border-black bg-[#C4B5FD] px-3 py-1.5 font-black shadow-[2px_2px_0px_0px_#000] hover:bg-[#A78BFA] shrink-0"
                     >
                         LER

@@ -276,16 +276,14 @@ const formatDate = (dateStr: string | null): string => {
                                         {{ formatDate(post.published_at) }}
                                     </span>
                                     <a
-                                        :href="post.url"
-                                        target="_blank"
+                                        :href="`/posts/${post.id}/read`"
                                         class="font-semibold text-[#1D1D1F] hover:text-[#0071E3] transition line-clamp-1 mt-0.5"
                                     >
                                         {{ post.title }}
                                     </a>
                                 </div>
                                 <a
-                                    :href="post.url"
-                                    target="_blank"
+                                    :href="`/posts/${post.id}/read`"
                                     class="p-2 rounded-xl bg-white text-[#0071E3] shadow-xs shrink-0"
                                 >
                                     ↗
@@ -321,8 +319,7 @@ const formatDate = (dateStr: string | null): string => {
                             <div class="flex items-start justify-between gap-3">
                                 <div>
                                     <a
-                                        :href="blog.url"
-                                        target="_blank"
+                                        :href="`/blogs/${blog.id}`"
                                         class="font-bold text-base text-[#1D1D1F] hover:text-[#0071E3] transition block line-clamp-1"
                                     >
                                         {{ blog.title }}
@@ -352,8 +349,7 @@ const formatDate = (dateStr: string | null): string => {
                                     >Mais recente:</span
                                 >
                                 <a
-                                    :href="blog.latest_post.url"
-                                    target="_blank"
+                                    :href="`/posts/${blog.latest_post.id}/read`"
                                     class="font-medium text-[#1D1D1F] hover:text-[#0071E3] line-clamp-1 mt-0.5"
                                 >
                                     {{ blog.latest_post.title }}

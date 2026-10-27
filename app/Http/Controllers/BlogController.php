@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Blog;
 use App\Models\BlogPost;
+use App\Models\MailSetting;
 use App\Services\FeedService;
 use Exception;
 use Illuminate\Http\RedirectResponse;
@@ -40,6 +41,8 @@ class BlogController extends Controller
             'blogs' => $blogs,
             'recentPosts' => $recentPosts,
             'stats' => $stats,
+            'mailSettingsAvailable' => MailSettingsController::available(request()),
+            'mailSettings' => MailSetting::query()->first()?->only(['provider', 'from_address']),
         ]);
     }
 
@@ -114,7 +117,7 @@ class BlogController extends Controller
             $newCount = $result['new_posts_count'];
 
             if ($newCount > 0) {
-                return back()->with('success', "✓ {$newCount} novo(s) artigo(s) encontrado(s) em '{$blog->title}'! Notificação disparada para {$blog->notify_email}.");
+                return back()->with('success', "✓ {$newCount} novo(s) artigo(s) encontrado(s) em '{$blog->title}'! O envio das notificações foi solicitado para {$blog->notify_email}.");
             }
 
             return back()->with('info', "Verificação concluída para '{$blog->title}'. O feed já está atualizado (nenhum post novo).");

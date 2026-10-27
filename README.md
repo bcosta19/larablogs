@@ -97,6 +97,12 @@ Open your browser at: **`http://localhost:8000`**
 
 ---
 
+## Email setup
+
+Open the navigation menu, choose Email and enter a Resend API key and sender address. For safety, this screen only accepts direct requests from localhost; it is unavailable through a reverse proxy or remotely. Store your Laravel `APP_KEY` securely: it encrypts the Resend key in the database, and changing it makes that key unreadable. Use a Resend key limited to sending.
+
+Use a sender on a verified domain for general delivery. `onboarding@resend.dev` is intended for testing and can only send to the email address associated with your Resend account. After saving, use the test email form with your recipient address. This queues the message; keep `php artisan queue:work database` running to process it. The job retries up to three times; inspect failures with `php artisan queue:failed`. Queuing does not prove delivery. Run the scheduler below to check feeds automatically. Failed article notifications are logged and are not retried automatically.
+
 ## Background Scheduler
 
 The Artisan command responsible for crawling feeds and dispatching notifications is:

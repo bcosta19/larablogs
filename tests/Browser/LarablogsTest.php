@@ -76,3 +76,22 @@ test('quick suggestion buttons prefill the form', function () {
             ->assertInputValue('@input-email', 'reader@example.com');
     });
 });
+
+test('theme selection applies immediately and survives a reload', function () {
+    $this->browse(function (Browser $browser) {
+        $browser->visit('/')->script("localStorage.removeItem('larablogs_theme')");
+        $browser->refresh()
+            ->waitFor('@design-menu')
+            ->click('@design-menu')
+            ->click('@design-submenu')
+            ->select('@design-select', 'terminal')
+            ->waitForText('REGISTER_FEED_TARGET')
+            ->assertScript("localStorage.getItem('larablogs_theme')", 'terminal')
+            ->refresh()
+            ->waitForText('REGISTER_FEED_TARGET')
+            ->click('@design-menu')
+            ->click('@design-submenu')
+            ->select('@design-select', 'editorial')
+            ->waitFor('@input-url');
+    });
+});

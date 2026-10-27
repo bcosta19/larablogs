@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, useForm, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, useForm, router, usePage } from '@inertiajs/vue3';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import type { BlogItem, BlogPostItem, BlogStats, FlashMessages } from '@/types';
 import { useI18n, type LocaleCode } from '@/i18n';
@@ -341,6 +341,16 @@ const handleImgError = (event: Event) => {
                             </svg>
                         </summary>
                         <div class="theme-panel">
+                            <Link href="/account/password" class="block px-1 py-2">{{
+                                t('auth.change_password')
+                            }}</Link>
+                            <button
+                                type="button"
+                                class="block px-1 py-2 cursor-pointer"
+                                @click="router.post('/logout')"
+                            >
+                                {{ t('auth.logout') }}
+                            </button>
                             <details class="theme-submenu">
                                 <summary dusk="design-submenu">{{ t('theme.name') }}</summary>
                                 <div class="theme-picker">

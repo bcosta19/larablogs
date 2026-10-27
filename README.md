@@ -97,9 +97,15 @@ Open your browser at: **`http://localhost:8000`**
 
 ---
 
+## Private account
+
+All application pages and settings require login. There is no public registration. Create the owner account with `php artisan account:bootstrap`; it prompts for the email and a hidden temporary password. The first login requires replacing that password. For unattended deployment, use `--email-file` and `--password-file` with private files. Existing demo accounts cannot sign in. An existing owner can only be reset with the explicit `--reset` option.
+
+Run browser tests using `composer run dusk`. They use a temporary database, test accounts, a separate local server and a dedicated ChromeDriver port, leaving your application data untouched.
+
 ## Email setup
 
-Open the navigation menu, choose Email and enter a Resend API key and sender address. For safety, this screen only accepts direct requests from localhost; it is unavailable through a reverse proxy or remotely. Store your Laravel `APP_KEY` securely: it encrypts the Resend key in the database, and changing it makes that key unreadable. Use a Resend key limited to sending.
+Open the navigation menu, choose Email and enter a Resend API key and sender address. These settings require signing in to the private account. Store your Laravel `APP_KEY` securely: it encrypts the Resend key in the database, and changing it makes that key unreadable. Use a Resend key limited to sending.
 
 Use a sender on a verified domain for general delivery. `onboarding@resend.dev` is intended for testing and can only send to the email address associated with your Resend account. After saving, use the test email form with your recipient address. This queues the message; keep `php artisan queue:work database` running to process it. The job retries up to three times; inspect failures with `php artisan queue:failed`. Queuing does not prove delivery. Run the scheduler below to check feeds automatically. Failed article notifications are logged and are not retried automatically.
 

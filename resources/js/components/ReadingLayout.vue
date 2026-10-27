@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import { useI18n, type LocaleCode } from '@/i18n';
 
 const props = defineProps<{ locale: LocaleCode }>();
@@ -30,6 +30,9 @@ const changeLocale = () => {
                     </option>
                 </select>
                 <Link href="/">{{ t('reader.home') }}</Link>
+                <button type="button" class="cursor-pointer" @click="router.post('/logout')">
+                    {{ t('auth.logout') }}
+                </button>
             </div>
         </nav>
         <main class="reading-main"><slot /></main>

@@ -1,0 +1,44 @@
+name: larablogs
+
+x-app: &app
+  image: larablogs:${LARABLOGS_VERSION:-local}
+  env_file:
+    - ${LARABLOGS_ENV_FILE:?Set the private production environment file}
+  volumes:
+    - ${LARABLOGS_DATA_DIR:?Set the persistent data directory}:/data
+    - ${LARABLOGS_STORAGE_DIR:?Set the persistent storage directory}:/var/www/html/storage
+  restart: unless-stopped
+  init: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
+services:
+  app:
+    <<: *app
+    build:
+      context: .
+      target: runtime
+    ports:
+      - "${LARABLOGS_NETBIRD_IPV4:?Set the NetBird IPv4}:${LARABLOGS_PORT:-80}:8080"
+      - "[${LARABLOGS_NETBIRD_IPV6:?Set the NetBird IPv6}]:${LARABLOGS_PORT:-80}:8080"
+      - "${LARABLOGS_TAILSCALE_IPV4:?Set the Tailscale IPv4}:${LARABLOGS_PORT:-80}:8080"
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8080/up') === false ? 1 : 0);"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+  worker:
+    <<: *app
+    command: ["php", "artisan", "queue:work", "database", "--sleep=2", "--tries=3", "--timeout=60", "--max-time=3600"]
+    depends_on:
+      app:
+        condition: service_healthy
+  scheduler:
+    <<: *app
+    command: ["php", "artisan", "schedule:work", "--no-interaction"]
+    depends_on:
+      app:
+        condition: service_healthy

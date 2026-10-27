@@ -37,16 +37,19 @@ test('can switch languages dynamically in the interface', function () {
             // Muda para Inglês
             ->select('@locale-select', 'en')
             ->pause(300)
+            ->assertScript('document.documentElement.lang', 'en')
             ->assertSee('Subscribe a new publication')
             ->assertSee('Add to Registry', true)
             // Muda para Espanhol
             ->select('@locale-select', 'es')
             ->pause(300)
+            ->assertScript('document.documentElement.lang', 'es')
             ->assertSee('Inscribir nueva publicación')
             ->assertSee('Agregar al Registro', true)
             // Volta para Português
             ->select('@locale-select', 'pt-BR')
             ->pause(300)
+            ->assertScript('document.documentElement.lang', 'pt-BR')
             ->assertSee('Inscrever nova publicação')
             ->assertSee('Adicionar ao Registro', true);
     });
